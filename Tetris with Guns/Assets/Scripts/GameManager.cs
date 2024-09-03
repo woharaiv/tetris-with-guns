@@ -17,6 +17,8 @@ public class GameManager : MonoBehaviour
     InputAction shift;
     InputAction softDrop;
 
+    [SerializeField] PieceSpawner pieceSpawner;
+
     public Tetramino activePiece;
     bool gameRunning = true;
     float tileSize, stepTimer, stepTimerMax, DASWaitTimer, DASMoveTimer, spawnTimer, lineClearTimer;
@@ -67,6 +69,7 @@ public class GameManager : MonoBehaviour
     {
         tileSize = Playfield.tileSize;
         stepTimer = stepTimerMax;
+        SpawnPiece();
     }
 
     private void Update()
@@ -113,6 +116,7 @@ public class GameManager : MonoBehaviour
                 Playfield.instance.DropAllTiles();
                 lineClearDelay = -999;
                 gameRunning = true;
+                SpawnPiece();
             }
         }
     }
@@ -200,6 +204,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    Tetramino SpawnPiece()
+    {
+        activePiece = pieceSpawner.SpawnRandomPiece();
+        return activePiece;
+    }
+
     void PlaceMino()
     {
         activePiece = null;
@@ -210,5 +220,7 @@ public class GameManager : MonoBehaviour
             gameRunning = false;
             lineClearTimer = lineClearDelay;
         }
+        else
+            SpawnPiece();
     }
 }
