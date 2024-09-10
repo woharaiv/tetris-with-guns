@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class PieceSpawner : MonoBehaviour
 {
-    [SerializeField] GameObject[] pieces;
+    [SerializeField] GameObject[] baseBag;
+    [SerializeField] List<GameObject> currentBag = new List<GameObject>();
     readonly Vector3 SPAWN_POS_3WIDE = new Vector3(-0.25f, 4.25f);
     readonly Vector3 SPAWN_POS_4WIDE = new Vector3(0f, 4.5f);
     public GameObject GetRandomPieceObject()
     {
-        GameObject pieceToSpawn = pieces[Random.Range(0, pieces.Length - 1)];
+        GameObject pieceToSpawn = baseBag[Random.Range(0, baseBag.Length - 1)];
 
         return pieceToSpawn;
     }
@@ -21,25 +22,25 @@ public class PieceSpawner : MonoBehaviour
         switch (shape.ToString().ToUpper())
         {
             case "I":
-                pieceToGet = pieces[0];
+                pieceToGet = baseBag[0];
                 break;
             case "J":
-                pieceToGet = pieces[1];
+                pieceToGet = baseBag[1];
                 break;
             case "L":
-                pieceToGet = pieces[2];
+                pieceToGet = baseBag[2];
                 break;
             case "O":
-                pieceToGet = pieces[3];
+                pieceToGet = baseBag[3];
                 break;
             case "S":
-                pieceToGet = pieces[4];
+                pieceToGet = baseBag[4];
                 break;
             case "T":
-                pieceToGet = pieces[5];
+                pieceToGet = baseBag[5];
                 break;
             case "Z":
-                pieceToGet = pieces[6];
+                pieceToGet = baseBag[6];
                 break;
             default:
                 Debug.LogError("\"" + shape.ToString() + "\" is not a valid piece shape");
@@ -52,10 +53,30 @@ public class PieceSpawner : MonoBehaviour
     }
     public Tetramino GetPiece(char shape) => GetPieceObject(shape).GetComponent<Tetramino>();
 
+    public Tetramino SpawnPiece(GameObject pieceToSpawn)
+    {
+        GameObject spawnedPiece = Instantiate(pieceToSpawn);
+        spawnedPiece.transform.SetParent(FindAnyObjectByType<Playfield>().transform);
+        return spawnedPiece.GetComponent<Tetramino>();
+    }
+
     public Tetramino SpawnRandomPiece()
     {
-        GameObject pieceToSpawn = Instantiate(GetRandomPieceObject());
-        pieceToSpawn.transform.SetParent(FindAnyObjectByType<Playfield>().transform);
-        return pieceToSpawn.GetComponent<Tetramino>();
+        return SpawnPiece(GetRandomPieceObject());
+    }
+
+    void RefillBag()
+    {
+        currentBag.AddRange(baseBag);
+    }
+
+    public Tetramino SpawnFromBag()
+    {
+        int randomIndex = Random.Range(0, currentBag.Count);
+        if (currentBag.Count <= 0)
+            RefillBag();
+        Tetramino spawnedPiece = SpawnPiece(currentBag[randomIndex]);
+        currentBag.RemoveAt(randomIndex);
+        return spawnedPiece;
     }
 }

@@ -21,13 +21,17 @@ public class Tile : MonoBehaviour
 
     public void QueueDrop(int tiles = 1)
     {
-        distanceToDrop++;
+        distanceToDrop += tiles;
+        Debug.LogFormat("This tile (at y pos {0:N2}) will drop {1} tiles", transform.position.y, distanceToDrop);
     }
 
     public void Drop()
     {
         if (distanceToDrop > 0)
+        {
             transform.position += Vector3.down * Playfield.tileSize * distanceToDrop;
+            distanceToDrop = 0;
+        }
     }
 
     public void DamageTile(int damage = 1)

@@ -3338,7 +3338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbff27b7f6a4561459450c627d1586e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pieces:
+  baseBag:
   - {fileID: 4306295556194828644, guid: 4dbef88d16ba33c4399a0817cf2c561e, type: 3}
   - {fileID: 4306295556194828644, guid: 104500a4b456afa4380a07d1a737bf3f, type: 3}
   - {fileID: 4306295556194828644, guid: 9bf52df9e1d1c3e4383faee6c92727c1, type: 3}
@@ -3346,6 +3346,7 @@ MonoBehaviour:
   - {fileID: 4306295556194828644, guid: 18573950e4e87eb4f8417c440fc2319d, type: 3}
   - {fileID: 4306295556194828644, guid: 037953f9df713cb46af54810acaf8003, type: 3}
   - {fileID: 4306295556194828644, guid: 700be9b433bab7944acc9d9e376c4409, type: 3}
+  currentBag: []
 --- !u!4 &2062824834
 Transform:
   m_ObjectHideFlags: 0

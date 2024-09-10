@@ -26,6 +26,9 @@ public class Playfield : MonoBehaviour
             return;
         }
         instance = this;
+
+        CalcPlayfieldCorners();
+        UpdateWell(false);
     }
 
     public int RowClearCheck()
@@ -59,11 +62,14 @@ public class Playfield : MonoBehaviour
                 clearedRowYs.Add(rowCheckY);
             }
         }
-        foreach(Tile tile in tilesInPlay)
-        {
-            foreach(float yPos in clearedRowYs)
+       foreach(float yPos in clearedRowYs)
+       {
+            Debug.LogFormat("Dropping tiles above y: {0:N}", yPos);
+            Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both, 10f);
+            foreach (Tile tile in tilesInPlay)
             {
-                if(tile.transform.position.y + tileSize * 0.1 > yPos)
+                Physics2D.OverlapCircle(tile.transform.position, tileSize * 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both, 10f);
+                if(tile.transform.position.y + tileSize * 0.1 > yPos) //For each row cleared, drop all the tiles that lie above that line
                 {
                     tile.QueueDrop();
                 }
@@ -81,20 +87,39 @@ public class Playfield : MonoBehaviour
     }
 
     private void OnDrawGizmos()
+    {   
+        CalcPlayfieldCorners();
+
+        UpdateWell(true);
+
+        DrawGrid();
+    }
+
+    void CalcPlayfieldCorners()
     {
         //Calculate corners of playfield
-        playfieldCorners[0].x = playfieldCorners[3].x = transform.position.x + (playfieldWidth * tileSize) / 2;
+        playfieldCorners[0].x = playfieldCorners [3].x = transform.position.x + (playfieldWidth * tileSize) / 2;
         playfieldCorners[1].x = playfieldCorners[2].x = transform.position.x - (playfieldWidth * tileSize) / 2;
 
         playfieldCorners[0].y = playfieldCorners[1].y = transform.position.y + (playfieldHeight * tileSize) / 2;
         playfieldCorners[2].y = playfieldCorners[3].y = transform.position.y - (playfieldHeight * tileSize) / 2;
+    }
 
-        
-        //Draw walls and floor
-        Gizmos.color = Color.white;
-        playfieldWallsStrip = new Vector3[4] { playfieldCorners[0], playfieldCorners[3], playfieldCorners[2], playfieldCorners[1] };
-        Gizmos.DrawLineStrip(playfieldWallsStrip, false);
-        
+    void UpdateWell(bool drawGizmos)
+    {
+        if (drawGizmos)
+        {
+            //Draw walls and floor
+            Gizmos.color = Color.white;
+            playfieldWallsStrip = new Vector3[4] { playfieldCorners[0], playfieldCorners[3], playfieldCorners[2], playfieldCorners[1] };
+            Gizmos.DrawLineStrip(playfieldWallsStrip, false);
+
+            //Draw top limit
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(playfieldCorners[0], playfieldCorners[1]);
+        }
+
+        //Place and scale objects
         rightWall.position = transform.position + (Vector3.right * playfieldWidth * tileSize * 0.5f) + (Vector3.right * rightWall.localScale.x / 2);
         rightWall.localScale = new Vector3(rightWall.localScale.x, playfieldHeight * tileSize, 1);
 
@@ -103,17 +128,13 @@ public class Playfield : MonoBehaviour
 
         floor.position = transform.position + (Vector3.down * playfieldHeight * tileSize * 0.5f) + (Vector3.down * floor.localScale.y / 2);
         floor.localScale = new Vector3(playfieldWidth * tileSize * 1.1f, floor.localScale.y, 1);
-
-        
-        //Draw top limit
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(playfieldCorners[0], playfieldCorners[1]);
         
         topEdge.position = transform.position + (Vector3.up * playfieldHeight * tileSize * 0.5f) + (Vector3.up * topEdge.localScale.y / 2);
         topEdge.localScale = new Vector3(playfieldWidth * tileSize * 1.1f, topEdge.localScale.y, 1);
+    }
 
-        
-        //Draw grid
+    void DrawGrid()
+    {
         Gizmos.color = Color.gray;
         playfieldGrid = new Vector3[((playfieldWidth - 1) * 2) + ((playfieldHeight - 1) * 2)];
         int i = 0;

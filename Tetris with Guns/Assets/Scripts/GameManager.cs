@@ -109,12 +109,12 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (lineClearDelay != -999)
-                lineClearDelay -= Time.deltaTime;
-            if (lineClearDelay <= 0)
+            if (lineClearTimer != -999)
+                lineClearTimer -= Time.deltaTime;
+            if (lineClearTimer <= 0)
             {
                 Playfield.instance.DropAllTiles();
-                lineClearDelay = -999;
+                lineClearTimer = -999;
                 gameRunning = true;
                 SpawnPiece();
             }
@@ -206,7 +206,7 @@ public class GameManager : MonoBehaviour
 
     Tetramino SpawnPiece()
     {
-        activePiece = pieceSpawner.SpawnRandomPiece();
+        activePiece = pieceSpawner.SpawnFromBag();
         return activePiece;
     }
 
