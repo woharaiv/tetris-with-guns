@@ -6,8 +6,8 @@ public class PieceSpawner : MonoBehaviour
 {
     [SerializeField] GameObject[] baseBag;
     [SerializeField] List<GameObject> currentBag = new List<GameObject>();
-    readonly Vector3 SPAWN_POS_3WIDE = new Vector3(-0.25f, 4.25f);
-    readonly Vector3 SPAWN_POS_4WIDE = new Vector3(0f, 4.5f);
+    readonly Vector3 SPAWN_POS_3WIDE = new Vector3(-0.25f, 5.25f);
+    readonly Vector3 SPAWN_POS_4WIDE = new Vector3(0f, 5.5f);
     public GameObject GetRandomPieceObject()
     {
         GameObject pieceToSpawn = baseBag[Random.Range(0, baseBag.Length - 1)];
@@ -72,9 +72,9 @@ public class PieceSpawner : MonoBehaviour
 
     public Tetramino SpawnFromBag()
     {
-        int randomIndex = Random.Range(0, currentBag.Count);
         if (currentBag.Count <= 0)
             RefillBag();
+        int randomIndex = Random.Range(0, currentBag.Count);
         Tetramino spawnedPiece = SpawnPiece(currentBag[randomIndex]);
         currentBag.RemoveAt(randomIndex);
         return spawnedPiece;

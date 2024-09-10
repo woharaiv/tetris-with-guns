@@ -29,6 +29,10 @@ public class GameManager : MonoBehaviour
     [SerializeField, Tooltip("Number of seconds the game waits between placing a piece and spawning the next one.")] float spawnDelay = 0.5f;
     [SerializeField, Tooltip("Number of seconds the game pauses when a line is cleared before continuing play.")] float lineClearDelay = 0.67f;
 
+    [SerializeField] int level = 1;
+    [SerializeField] int lineGoal = 5;
+    [SerializeField] int lineScore = 0;
+
     private void Awake()
     {
         if (instance != null)
@@ -53,7 +57,6 @@ public class GameManager : MonoBehaviour
         input.FindAction("Rotate").started += RotatePiece;
         softDrop = input.FindAction("Soft Drop");
         input.FindAction("Hard Drop").started += HardDrop;
-
     }
 
     void OnEnable()
@@ -110,13 +113,15 @@ public class GameManager : MonoBehaviour
         else
         {
             if (lineClearTimer != -999)
-                lineClearTimer -= Time.deltaTime;
-            if (lineClearTimer <= 0)
             {
-                Playfield.instance.DropAllTiles();
-                lineClearTimer = -999;
-                gameRunning = true;
-                SpawnPiece();
+                lineClearTimer -= Time.deltaTime;
+                if (lineClearTimer <= 0)
+                {
+                    Playfield.instance.DropAllTiles();
+                    lineClearTimer = -999;
+                    gameRunning = true;
+                    SpawnPiece();
+                }
             }
         }
     }
@@ -206,21 +211,70 @@ public class GameManager : MonoBehaviour
 
     Tetramino SpawnPiece()
     {
+        if(!gameRunning)
+            return null;
         activePiece = pieceSpawner.SpawnFromBag();
+        Physics2D.SyncTransforms();
+        if (activePiece.IsObstructed(Vector2.zero, null, Color.red))
+        {
+            GameOver();
+            return null;
+        }
+        Step();
         return activePiece;
     }
 
     void PlaceMino()
     {
-        activePiece = null;
         Physics2D.SyncTransforms();
+        //Lock out: If a piece is placed completely over the top line, the player tops out.
+        //Block Out: If a piece spawns overlapping a tile in the playfield, the player tops out.
+        if (activePiece.transform.position.y > 5 || activePiece.transform.position.y == 5 && activePiece.name.Equals("IPiece") 
+            || activePiece.IsObstructed(Vector2.zero, null, Color.red))
+            GameOver();
+        activePiece = null;
         int rowsCleared = Playfield.instance.RowClearCheck();
         if (rowsCleared > 0)
         {
             gameRunning = false;
             lineClearTimer = lineClearDelay;
+            switch(rowsCleared)
+            {
+                case 1:
+                    lineScore += 1;
+                    break;
+                case 2:
+                    lineScore += 3;
+                    break;
+                case 3:
+                    lineScore += 5;
+                    break;
+                case 4:
+                    Debug.Log("boom tetris for jeff");
+                    lineScore += 8;
+                    break;
+                default:
+                    lineScore += 10;
+                    break;
+            }
+            while(lineScore > lineGoal && lineGoal > 0)
+            {
+                lineScore -= lineGoal;
+                level++;
+                lineGoal += 5;
+                gravity += 2;
+                stepTimerMax = 256 / (60 * gravity);
+            }
+
         }
         else
             SpawnPiece();
+    }
+
+    void GameOver()
+    {
+        Debug.Log("GAME OVER");
+        gameRunning = false;
+        lineClearTimer = -999;
     }
 }
