@@ -14,6 +14,7 @@ public class Tetramino : MonoBehaviour
     [SerializeField] bool showGrid;
     [SerializeField, Range(3, 4)] int width = 3;
     [SerializeField] Color color;
+    public bool isActivePiece = true;
 
     private void Start()
     {
@@ -186,7 +187,6 @@ public class Tetramino : MonoBehaviour
             rotationState = (rotationState - (int)quarterTurns) % 4;
             if (rotationState < 0)
                 rotationState += 4;
-            Debug.Log(rotationState);
             foreach (Tile tile in tiles)
             {
                 tile.transform.localEulerAngles -= Vector3.forward * 90 * quarterTurns;

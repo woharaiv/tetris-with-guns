@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Tile : MonoBehaviour
 {
+    static float gravityMod = 5f;
+
     public float timestamp = -1f;
     public Tetramino owner;
     int distanceToDrop = 0;
@@ -13,23 +17,53 @@ public class Tile : MonoBehaviour
     [SerializeField] Sprite[] damageSprites;
     public Color color = Color.gray;
 
+    public bool checkedGravThisFrame = false;
+    public bool alreadyCheckingGravity = false;
+    public bool usingGravity = false;
+
     private void Start()
     {
         Playfield.instance.tilesInPlay.Add(this);
         tileHealth = maxHealth;
     }
 
+    private void Update()
+    {
+        if (checkedGravThisFrame)
+            checkedGravThisFrame = false;
+        if(usingGravity)
+        {
+            //Fall with gravity
+            Vector3 fallingVelocity = Vector3.down * Time.deltaTime * GameManager.instance.gravity * GameManager.instance.softDropSpeedMult * gravityMod * Time.deltaTime;
+            foreach(Collider2D other in Physics2D.OverlapPointAll(transform.position + fallingVelocity + Vector3.down / 2f * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"),RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None, 10f))
+            {
+                Tile tileComponent = other.GetComponent<Tile>();
+                if (!tileComponent || !tileComponent.usingGravity)
+                    usingGravity = false;
+            }
+            if(usingGravity)
+                transform.position += fallingVelocity;
+            else
+            {
+                float yPos = transform.position.y;
+                float yPosTruncated = (float)System.Math.Truncate(yPos);
+                float yPosDecimalPortion = Mathf.Abs(yPos - yPosTruncated);
+                transform.position = new Vector3(transform.position.x, yPosTruncated + ((yPosDecimalPortion < 0.5 ? 0.25f : 0.75f) * Mathf.Sign(yPos)), transform.position.z);
+            }
+        }
+    }
+
     public void QueueDrop(int tiles = 1)
     {
         distanceToDrop += tiles;
-        Debug.LogFormat("This tile (at y pos {0:N2}) will drop {1} tiles", transform.position.y, distanceToDrop);
     }
 
     public void Drop()
     {
         if (distanceToDrop > 0)
         {
-            transform.position += Vector3.down * Playfield.tileSize * distanceToDrop;
+            if(!usingGravity)
+                transform.position += distanceToDrop * Playfield.tileSize * Vector3.down;
             distanceToDrop = 0;
         }
     }
@@ -48,6 +82,45 @@ public class Tile : MonoBehaviour
 
     public void KillTile()
     {
+        if (owner.isActivePiece)
+        {  
+            //Makes gravity checks think this tile doesn't exist 
+            alreadyCheckingGravity = true;
+            //Make all neighboring tiles check for gravity
+            //Left
+            gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.left * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+            if(gravCheckNeighbor)
+            {
+                gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+                if(gravCheckTile)
+                    gravCheckTile.CheckForGravity();
+            }
+            //Right
+            gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.right * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+            if (gravCheckNeighbor)
+            {
+                gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+                if (gravCheckTile)
+                    gravCheckTile.CheckForGravity();
+            }
+            //Up
+            gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.up * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+            if (gravCheckNeighbor)
+            {
+                gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+                if (gravCheckTile)
+                    gravCheckTile.CheckForGravity();
+            }
+            //Down
+            gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.down * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+            if (gravCheckNeighbor)
+            {
+                gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+                if (gravCheckTile)
+                    gravCheckTile.CheckForGravity();
+            }
+        }
+
         if (Playfield.instance != null)
         {
             Playfield.instance.tilesInPlay.Remove(this);
@@ -59,5 +132,79 @@ public class Tile : MonoBehaviour
         Destroy(gameObject);
     }
 
+    Tile gravCheckTile;
+    Collider2D gravCheckNeighbor;
+    public bool CheckForGravity()
+    {
+        //Check all neighbors
+
+        alreadyCheckingGravity = true;
+        checkedGravThisFrame = true;
+
+        //If a neighbor is a tile, return false if that one's check for gravity returns false.
+
+        //Check down
+        gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.down * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+        if (gravCheckNeighbor)
+        {
+            gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+            //If there's a floor, return false.
+            if (!gravCheckTile)
+            {
+                alreadyCheckingGravity = false;
+                return false;
+            }
+        }
+        if (gravCheckNeighbor && gravCheckTile && !gravCheckTile.alreadyCheckingGravity && (gravCheckTile.checkedGravThisFrame ? !gravCheckTile.usingGravity : gravCheckTile.CheckForGravity() == false))
+        {
+            alreadyCheckingGravity = false;
+            usingGravity = false;
+            return false;
+        }
+        /*
+        if (gravCheckTile && gravCheckTile.alreadyCheckingGravity)
+            GetComponent<SpriteRenderer>().color += Color.red;
+        if (gravCheckTile && gravCheckTile.checkedGravThisFrame)
+            GetComponent<SpriteRenderer>().color += Color.green;
+        if(gravCheckTile && gravCheckTile.usingGravity)
+            GetComponent<SpriteRenderer>().color += Color.blue;
+        */
+
+        //Check left
+        gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.left * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+        if (gravCheckNeighbor) 
+            gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+        if (gravCheckNeighbor && gravCheckTile && !gravCheckTile.alreadyCheckingGravity && (gravCheckTile.checkedGravThisFrame ? !gravCheckTile.usingGravity : gravCheckTile.CheckForGravity() == false))
+        {
+            alreadyCheckingGravity = false;
+            return false;
+        }
+        
+        //Check right
+        gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.right * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+        if (gravCheckNeighbor)
+            gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+        if (gravCheckNeighbor && gravCheckTile && !gravCheckTile.alreadyCheckingGravity && (gravCheckTile.checkedGravThisFrame ? !gravCheckTile.usingGravity : gravCheckTile.CheckForGravity() == false))
+        {
+            alreadyCheckingGravity = false;
+            return false;
+        }
+
+        //Check up
+        gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.up * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+        if (gravCheckNeighbor)
+            gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
+        if (gravCheckNeighbor && gravCheckTile && !gravCheckTile.alreadyCheckingGravity && (gravCheckTile.checkedGravThisFrame ? !gravCheckTile.usingGravity : gravCheckTile.CheckForGravity() == false))
+        {
+            alreadyCheckingGravity = false;
+            return false;
+        }
+
+
+        //If there are no neighbors (except for walls on the sides), return true.
+        alreadyCheckingGravity = false;
+        usingGravity = true;
+        return true;
+    }
     
 }

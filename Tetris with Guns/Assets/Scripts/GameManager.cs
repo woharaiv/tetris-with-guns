@@ -22,8 +22,8 @@ public class GameManager : MonoBehaviour
     public Tetramino activePiece;
     bool gameRunning = true;
     float tileSize, stepTimer, stepTimerMax, DASWaitTimer, DASMoveTimer, spawnTimer, lineClearTimer;
-    [SerializeField, Tooltip("The speed the piece falls down, at a rate of G/256 rows per frame.")] float gravity;
-    [SerializeField, Tooltip("How much faster pieces drop while holding down.")] float softDropSpeedMult = 2;
+    [SerializeField, Tooltip("The speed the piece falls down, at a rate of G/256 rows per frame.")] public float gravity;
+    [SerializeField, Tooltip("How much faster pieces drop while holding down.")] public float softDropSpeedMult = 2;
     [SerializeField, Tooltip("Number of seconds the player most hold one move button before Delayed Auto Shift (basically a built-in turbo button) activates.")] float DASTimerMax;
     [SerializeField, Tooltip("Number of seconds between horizontal steps once DAS is active.")] float DASInterval;
     [SerializeField, Tooltip("Number of seconds the game waits between placing a piece and spawning the next one.")] float spawnDelay = 0.5f;
@@ -87,12 +87,22 @@ public class GameManager : MonoBehaviour
                 stepTimer = stepTimerMax;
                 Step();
             }
-        
-            if(acceptingInput)
+            if(activePiece == null && spawnTimer > -999)
+            {
+                spawnTimer -= Time.deltaTime;
+                if (spawnTimer <= 0)
+                {
+                    SpawnPiece();
+                }
+            }
+
+            Debug.Log(spawnTimer);
+            if(acceptingInput && spawnTimer <= 0)
             {
                 if(shift.phase == InputActionPhase.Performed) //If the move button is being held, perform DAS logic
                 {
                     DASWaitTimer -= Time.deltaTime; //Decrement the timer for the initial DAS
+                    Debug.Log(DASWaitTimer);
                     if( DASWaitTimer <= 0 ) //If the timer is done, run DAS movement logic
                     {
                         DASMoveTimer -= Time.deltaTime; //Decrement the timer between instances of DAS movement.
@@ -103,12 +113,8 @@ public class GameManager : MonoBehaviour
                         }
                     }
                 }
-                else //If the move button is released or a new move button is pressed (ie. going from holding left to holding right), restart the DAS timer.
-                {
-                    DASWaitTimer = DASTimerMax;
-                    DASMoveTimer = DASInterval;
-                }
             }
+
         }
         else
         {
@@ -181,6 +187,8 @@ public class GameManager : MonoBehaviour
         if (!acceptingInput)
             return;
         MoveActive(Vector2.right * ctx.ReadValue<float>());
+        DASWaitTimer = DASTimerMax;
+        DASMoveTimer = DASInterval;
     }
 
     void RotatePiece(InputAction.CallbackContext ctx)
@@ -221,6 +229,7 @@ public class GameManager : MonoBehaviour
             return null;
         }
         Step();
+        spawnTimer = -999;
         return activePiece;
     }
 
@@ -232,8 +241,10 @@ public class GameManager : MonoBehaviour
         if (activePiece.transform.position.y > 5 || activePiece.transform.position.y == 5 && activePiece.name.Equals("IPiece") 
             || activePiece.IsObstructed(Vector2.zero, null, Color.red))
             GameOver();
+        activePiece.isActivePiece = false;
         activePiece = null;
         int rowsCleared = Playfield.instance.RowClearCheck();
+        //Line cleared logic
         if (rowsCleared > 0)
         {
             gameRunning = false;
@@ -267,8 +278,7 @@ public class GameManager : MonoBehaviour
             }
 
         }
-        else
-            SpawnPiece();
+        spawnTimer = spawnDelay;
     }
 
     void GameOver()
