@@ -40,7 +40,7 @@ public class Playfield : MonoBehaviour
             rowCheckY = playfieldCorners[2].y + tileSize * i + tileSize * 0.5f;
             Vector3 lineCastStart = new Vector2(playfieldCorners[0].x * 1.1f, rowCheckY);
             Vector3 linecastEnd = new Vector2(playfieldCorners[1].x * 1.1f, rowCheckY);
-            RaycastHit2D[] hits = Physics2D.LinecastAll(lineCastStart, linecastEnd, (drawClearCheck ? RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both : RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None), 10f); //Cast a ray across the playfield
+            RaycastHit2D[] hits = Physics2D.LinecastAll(lineCastStart, linecastEnd, (drawClearCheck ? RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor : RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None), 10f); //Cast a ray across the playfield
             if (hits.Length <= 2) //Don't bother if we hit two things (the walls) or less
                 continue;
             
@@ -65,10 +65,10 @@ public class Playfield : MonoBehaviour
        foreach(float yPos in clearedRowYs)
        {
             Debug.LogFormat("Dropping tiles above y: {0:N}", yPos);
-            Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both, 10f);
+            Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
             foreach (Tile tile in tilesInPlay)
             {
-                Physics2D.OverlapCircle(tile.transform.position, tileSize * 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both, 10f);
+                Physics2D.OverlapCircle(tile.transform.position, tileSize * 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
                 if(tile.transform.position.y + tileSize * 0.1 > yPos) //For each row cleared, drop all the tiles that lie above that line
                 {
                     tile.QueueDrop();

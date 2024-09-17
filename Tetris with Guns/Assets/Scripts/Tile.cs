@@ -25,6 +25,7 @@ public class Tile : MonoBehaviour
     {
         Playfield.instance.tilesInPlay.Add(this);
         tileHealth = maxHealth;
+        color = GetComponent<SpriteRenderer>().color;
     }
 
     private void Update()
@@ -41,6 +42,7 @@ public class Tile : MonoBehaviour
                 if (!tileComponent || !tileComponent.usingGravity)
                 {
                     usingGravity = false;
+                    GetComponent<SpriteRenderer>().color = color;
                     break;
                 }
             }
@@ -58,7 +60,8 @@ public class Tile : MonoBehaviour
 
     public void QueueDrop(int tiles = 1)
     {
-        distanceToDrop += tiles;
+        if(!usingGravity)
+            distanceToDrop += tiles;
     }
 
     public void Drop()
@@ -162,6 +165,7 @@ public class Tile : MonoBehaviour
         {
             alreadyCheckingGravity = false;
             usingGravity = false;
+            GetComponent<SpriteRenderer>().color = color;
             return false;
         }
         /*
@@ -206,6 +210,7 @@ public class Tile : MonoBehaviour
 
         //If there are no neighbors (except for walls on the sides), return true.
         alreadyCheckingGravity = false;
+        GetComponent<SpriteRenderer>().color = Color.white;
         usingGravity = true;
         return true;
     }
