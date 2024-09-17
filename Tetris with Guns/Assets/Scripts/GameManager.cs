@@ -96,13 +96,11 @@ public class GameManager : MonoBehaviour
                 }
             }
 
-            Debug.Log(spawnTimer);
             if(acceptingInput && spawnTimer <= 0)
             {
                 if(shift.phase == InputActionPhase.Performed) //If the move button is being held, perform DAS logic
                 {
                     DASWaitTimer -= Time.deltaTime; //Decrement the timer for the initial DAS
-                    Debug.Log(DASWaitTimer);
                     if( DASWaitTimer <= 0 ) //If the timer is done, run DAS movement logic
                     {
                         DASMoveTimer -= Time.deltaTime; //Decrement the timer between instances of DAS movement.
@@ -268,7 +266,7 @@ public class GameManager : MonoBehaviour
                     lineScore += 10;
                     break;
             }
-            while(lineScore > lineGoal && lineGoal > 0)
+            while(lineScore >= lineGoal && lineGoal > 0)
             {
                 lineScore -= lineGoal;
                 level++;

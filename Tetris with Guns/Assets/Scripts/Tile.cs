@@ -39,7 +39,10 @@ public class Tile : MonoBehaviour
             {
                 Tile tileComponent = other.GetComponent<Tile>();
                 if (!tileComponent || !tileComponent.usingGravity)
+                {
                     usingGravity = false;
+                    break;
+                }
             }
             if(usingGravity)
                 transform.position += fallingVelocity;
@@ -82,7 +85,7 @@ public class Tile : MonoBehaviour
 
     public void KillTile()
     {
-        if (owner.isActivePiece)
+        if (!owner || !owner.isActivePiece)
         {  
             //Makes gravity checks think this tile doesn't exist 
             alreadyCheckingGravity = true;
