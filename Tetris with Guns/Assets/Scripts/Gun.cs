@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.Windows;
+using TMPro;
 
 public class Gun : MonoBehaviour
 {
@@ -12,6 +13,22 @@ public class Gun : MonoBehaviour
     InputActionMap input;
 
     [SerializeField] RawImage screenFlashAsset;
+
+    public int ammoCount 
+    { 
+        get 
+        { 
+            return _ammo; 
+        }
+        set 
+        { 
+            _ammo = value; 
+            ammoText.text = _ammo.ToString(); 
+        } 
+    }
+    int _ammo = 10;
+    int ammoMax = 10;
+    [SerializeField] TextMeshProUGUI ammoText;
 
     [SerializeField] GameObject shootParticle;
     [SerializeField] AudioClip shootSound;
@@ -29,6 +46,10 @@ public class Gun : MonoBehaviour
     {
         if (!GameManager.instance.acceptingInput)
             return;
+        if (ammoCount <= 0)
+            return;
+
+        ammoCount--;
 
         DOTween.Sequence()
             .Append(screenFlashAsset.DOColor(new Color(1, 1, 1, 0.25f), 0.05f))
@@ -53,5 +74,13 @@ public class Gun : MonoBehaviour
         
         if (hitBackground)
             bgManager.ShootBackground(clickLocation);
+    }
+    public void AddAmmo(int ammoToAdd)
+    {
+        ammoCount += ammoToAdd;
+    }
+    public void Reload()
+    {
+        ammoCount = ammoMax;
     }
 }

@@ -7,7 +7,7 @@ using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Tile : MonoBehaviour
 {
-    static float gravityMod = 5f;
+    static float gravityMod = 50f;
 
     public float timestamp = -1f;
     public Tetramino owner;
@@ -210,7 +210,7 @@ public class Tile : MonoBehaviour
 
         //If there are no neighbors (except for walls on the sides), return true.
         alreadyCheckingGravity = false;
-        GetComponent<SpriteRenderer>().color = Color.white;
+        //GetComponent<SpriteRenderer>().color = Color.white;
         usingGravity = true;
         return true;
     }

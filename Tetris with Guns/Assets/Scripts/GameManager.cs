@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
     public static GameManager instance { get; private set; }
     new public static Camera camera;
 
+    Gun gun;
+
     public bool acceptingInput = true;
     [SerializeField] InputActionAsset actionAsset;
     InputActionMap input;
@@ -43,6 +45,7 @@ public class GameManager : MonoBehaviour
         }
         instance = this;
         camera = FindAnyObjectByType<Camera>();
+        gun = GetComponent<Gun>();
 
         stepTimerMax = 256 / (60*gravity);
         stepTimer = stepTimerMax;
@@ -233,16 +236,20 @@ public class GameManager : MonoBehaviour
 
     void PlaceMino()
     {
+        //Ensures colliders are in the right place for raycast checks
         Physics2D.SyncTransforms();
+        
         //Lock out: If a piece is placed completely over the top line, the player tops out.
         //Block Out: If a piece spawns overlapping a tile in the playfield, the player tops out.
         if (activePiece.transform.position.y > 5 || activePiece.transform.position.y == 5 && activePiece.name.Equals("IPiece") 
             || activePiece.IsObstructed(Vector2.zero, null, Color.red))
             GameOver();
+
         activePiece.isActivePiece = false;
         activePiece = null;
-        int rowsCleared = Playfield.instance.RowClearCheck();
+        
         //Line cleared logic
+        int rowsCleared = Playfield.instance.RowClearCheck();
         if (rowsCleared > 0)
         {
             gameRunning = false;
@@ -251,18 +258,23 @@ public class GameManager : MonoBehaviour
             {
                 case 1:
                     lineScore += 1;
+                    gun.AddAmmo(3);
                     break;
                 case 2:
+                    gun.AddAmmo(6);
                     lineScore += 3;
                     break;
                 case 3:
+                    gun.AddAmmo(9);
                     lineScore += 5;
                     break;
                 case 4:
                     Debug.Log("boom tetris for jeff");
+                    gun.AddAmmo(12);
                     lineScore += 8;
                     break;
                 default:
+                    gun.AddAmmo(15);
                     lineScore += 10;
                     break;
             }
