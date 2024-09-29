@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.Windows;
 using TMPro;
+using Cinemachine;
 
 public class Gun : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class Gun : MonoBehaviour
     InputActionMap input;
 
     [SerializeField] RawImage screenFlashAsset;
+
+    CinemachineImpulseSource impulseSource;
 
     public int ammoCount 
     { 
@@ -26,7 +29,7 @@ public class Gun : MonoBehaviour
             ammoText.text = _ammo.ToString(); 
         } 
     }
-    int _ammo = 10;
+    [SerializeField] int _ammo = 10;
     int ammoMax = 10;
     [SerializeField] TextMeshProUGUI ammoText;
 
@@ -40,6 +43,7 @@ public class Gun : MonoBehaviour
         input = actionAsset.FindActionMap("Gameplay");
         input.FindAction("Shoot").started += Shoot;
         bgManager = FindAnyObjectByType<Background>();
+        impulseSource = GetComponent<CinemachineImpulseSource>();
     }
 
     void Shoot(InputAction.CallbackContext ctx)
@@ -51,24 +55,33 @@ public class Gun : MonoBehaviour
 
         ammoCount--;
 
+        Vector2 clickLocation = GameManager.camera.ScreenToWorldPoint(ctx.ReadValue<Vector2>());
+
+        //Hit particle
+        Instantiate(shootParticle, (Vector3)clickLocation + Vector3.back, Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
+        
+        //Gun sound
+        AudioSource.PlayClipAtPoint(shootSound, clickLocation);
+
+        //Screen flash
         DOTween.Sequence()
             .Append(screenFlashAsset.DOColor(new Color(1, 1, 1, 0.25f), 0.05f))
             .Append(screenFlashAsset.DOColor(new Color(1, 1, 1, 0), 0.1f));
 
-        Vector2 clickLocation = GameManager.camera.ScreenToWorldPoint(ctx.ReadValue<Vector2>());
-
-        Instantiate(shootParticle, (Vector3)clickLocation + Vector3.back, Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
-        AudioSource.PlayClipAtPoint(shootSound, clickLocation);
+        //Screen shake
+        impulseSource.GenerateImpulseAt(clickLocation, Random.insideUnitCircle.normalized * 0.1f);
 
         bool hitBackground = true;
         Collider2D[] hit = Physics2D.OverlapPointAll(clickLocation);
         foreach (Collider2D col in hit)
         {
+            if(col.CompareTag("Obstruction"))
+                hitBackground = false;
+            
             Tile tileCheck = col.gameObject.GetComponent<Tile>();
             if (tileCheck != null)
             {
                 tileCheck.DamageTile();
-                hitBackground = false;
             }
         }
         

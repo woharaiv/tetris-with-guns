@@ -72,8 +72,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -704822757
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: eaab6a01202d5824796c622d5fc82b16, type: 3}
   m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -106,6 +106,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 66b85d99e97162c449be015db94275a0, type: 3}
   - {fileID: 21300000, guid: 5b70125618ff1d244bbec958560da110, type: 3}
   color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  checkedGravThisFrame: 0
+  alreadyCheckingGravity: 0
+  usingGravity: 0
 --- !u!61 &6567858374405353681
 BoxCollider2D:
   m_ObjectHideFlags: 0

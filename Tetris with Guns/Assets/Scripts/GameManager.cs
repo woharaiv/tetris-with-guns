@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
         }
         instance = this;
         camera = FindAnyObjectByType<Camera>();
-        gun = GetComponent<Gun>();
+        gun = FindAnyObjectByType<Gun>();
 
         stepTimerMax = 256 / (60*gravity);
         stepTimer = stepTimerMax;

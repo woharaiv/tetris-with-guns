@@ -12,17 +12,22 @@ public class Background : MonoBehaviour
 
     [SerializeField] float backgroundScalar = 0.1f;
 
+    Camera camera;
+    Vector2 cameraBasePos;
+
     float xBound;
     float yBound;
     private void Start()
     {
         xBound = 10.67f + (bulletHole.transform.localScale.x / 2);
         yBound = 6f + (bulletHole.transform.localScale.y / 2);
+        camera = Camera.main;
+        cameraBasePos = camera.transform.localPosition;
     }
     private void Update()
     {
         //Scroll background image
-        backgroundImage.uvRect = new Rect(backgroundImage.uvRect.position - movementVelocity * Time.deltaTime * backgroundScalar, backgroundImage.uvRect.size);
+        backgroundImage.uvRect = new Rect(backgroundImage.uvRect.position - (movementVelocity * Time.deltaTime * backgroundScalar), backgroundImage.uvRect.size);
 
         //Move bullet holes so they look like they're moving with the background, deleting them if they go offscreen. ToArray() copies the list so we aren't deleting from the same list the foreach is moving through.
         foreach (GameObject hole in bulletHoles.ToArray())

@@ -39,6 +39,18 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 491535503
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Playfield
+    uniqueID: 3590144539
+    locked: 0
+  - name: AbovePlayfield
+    uniqueID: 3292337459
+    locked: 0
+  - name: UI
+    uniqueID: 1934104839
     locked: 0
