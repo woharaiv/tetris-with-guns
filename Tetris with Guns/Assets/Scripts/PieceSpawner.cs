@@ -6,14 +6,19 @@ public class PieceSpawner : MonoBehaviour
 {
     [SerializeField] GameObject[] baseBag;
     [SerializeField] List<GameObject> currentBag = new List<GameObject>();
+    [SerializeField] SpriteRenderer spriteRenderer;
+
+    GameObject nextPiece;
     readonly Vector3 SPAWN_POS_3WIDE = new Vector3(-0.25f, 5.25f);
     readonly Vector3 SPAWN_POS_4WIDE = new Vector3(0f, 5.5f);
+
     public GameObject GetRandomPieceObject()
     {
         GameObject pieceToSpawn = baseBag[Random.Range(0, baseBag.Length - 1)];
 
         return pieceToSpawn;
     }
+    
     public Tetramino GetRandomPiece() => GetRandomPieceObject().GetComponent<Tetramino>();
 
     public GameObject GetPieceObject(char shape)
@@ -51,6 +56,7 @@ public class PieceSpawner : MonoBehaviour
 
         return pieceToGet;
     }
+    
     public Tetramino GetPiece(char shape) => GetPieceObject(shape).GetComponent<Tetramino>();
 
     public Tetramino SpawnPiece(GameObject pieceToSpawn)
@@ -70,13 +76,34 @@ public class PieceSpawner : MonoBehaviour
         currentBag.AddRange(baseBag);
     }
 
-    public Tetramino SpawnFromBag()
+    public GameObject PullFromBag()
     {
         if (currentBag.Count <= 0)
             RefillBag();
         int randomIndex = Random.Range(0, currentBag.Count);
-        Tetramino spawnedPiece = SpawnPiece(currentBag[randomIndex]);
+        GameObject pulledPiece = currentBag[randomIndex];
         currentBag.RemoveAt(randomIndex);
+        return pulledPiece;
+    }
+
+    public Tetramino SpawnFromBag()
+    {
+        return SpawnPiece(PullFromBag());
+    }
+
+    public void InitializeNextPiece()
+    {
+        currentBag.Clear();
+        RefillBag();
+        nextPiece = PullFromBag();
+        spriteRenderer.sprite = nextPiece.GetComponent<Tetramino>().piecePreview;
+    }
+
+    public Tetramino SpawnNextPiece()
+    {
+        Tetramino spawnedPiece = SpawnPiece(nextPiece);
+        nextPiece = PullFromBag();
+        spriteRenderer.sprite = nextPiece.GetComponent<Tetramino>().piecePreview;
         return spawnedPiece;
     }
 }

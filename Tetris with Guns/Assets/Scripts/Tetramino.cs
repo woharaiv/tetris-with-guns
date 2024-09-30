@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 
 public class Tetramino : MonoBehaviour
@@ -15,6 +16,8 @@ public class Tetramino : MonoBehaviour
     [SerializeField, Range(3, 4)] int width = 3;
     [SerializeField] Color color;
     public bool isActivePiece = true;
+
+    [SerializeField] public Sprite piecePreview;
 
     private void Start()
     {

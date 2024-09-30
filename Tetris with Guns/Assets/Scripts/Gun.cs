@@ -35,6 +35,7 @@ public class Gun : MonoBehaviour
 
     [SerializeField] GameObject shootParticle;
     [SerializeField] AudioClip shootSound;
+    [SerializeField] float screenShakeStrength;
 
     Background bgManager;
 
@@ -69,7 +70,7 @@ public class Gun : MonoBehaviour
             .Append(screenFlashAsset.DOColor(new Color(1, 1, 1, 0), 0.1f));
 
         //Screen shake
-        impulseSource.GenerateImpulseAt(clickLocation, Random.insideUnitCircle.normalized * 0.1f);
+        impulseSource.GenerateImpulseAt(clickLocation, Random.insideUnitCircle.normalized * 0.1f * screenShakeStrength);
 
         bool hitBackground = true;
         Collider2D[] hit = Physics2D.OverlapPointAll(clickLocation);

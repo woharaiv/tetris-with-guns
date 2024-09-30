@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     InputAction shift;
     InputAction softDrop;
 
-    [SerializeField] PieceSpawner pieceSpawner;
+    PieceSpawner pieceSpawner;
 
     public Tetramino activePiece;
     bool gameRunning = true;
@@ -44,8 +44,12 @@ public class GameManager : MonoBehaviour
             return;
         }
         instance = this;
-        camera = FindAnyObjectByType<Camera>();
+        
+        camera = Camera.main;
         gun = FindAnyObjectByType<Gun>();
+        pieceSpawner = FindAnyObjectByType<PieceSpawner>();
+        
+        pieceSpawner.InitializeNextPiece();
 
         stepTimerMax = 256 / (60*gravity);
         stepTimer = stepTimerMax;
@@ -222,7 +226,7 @@ public class GameManager : MonoBehaviour
     {
         if(!gameRunning)
             return null;
-        activePiece = pieceSpawner.SpawnFromBag();
+        activePiece = pieceSpawner.SpawnNextPiece();
         Physics2D.SyncTransforms();
         if (activePiece.IsObstructed(Vector2.zero, null, Color.red))
         {

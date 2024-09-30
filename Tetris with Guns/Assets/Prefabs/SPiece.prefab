@@ -51,6 +51,8 @@ MonoBehaviour:
   showGrid: 1
   width: 3
   color: {r: 1, g: 1, b: 0, a: 0}
+  isActivePiece: 1
+  piecePreview: {fileID: 21300000, guid: c794793c6badc034a895ac170bdf21bc, type: 3}
 --- !u!1001 &261983019730322649
 PrefabInstance:
   m_ObjectHideFlags: 0
