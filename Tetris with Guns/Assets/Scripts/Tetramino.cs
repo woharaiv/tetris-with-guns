@@ -36,7 +36,7 @@ public class Tetramino : MonoBehaviour
     {
         foreach (Tile tile in tiles)
         {
-            foreach(RaycastHit2D hit in Physics2D.BoxCastAll(tile.transform.position + (Vector3)(offset != null ? offset * tileSize : Vector2.zero), Vector2.one * tileSize * 0.9f, 0, direction, tileSize, (raycastColor != null? RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both : RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None), 5f, raycastColor, raycastColor)) //Cast a tile-sized box in the intended direction from each tile in the mino
+            foreach(RaycastHit2D hit in Physics2D.BoxCastAll(tile.transform.position + (Vector3)(offset != null ? offset * tileSize : Vector2.zero), Vector2.one * tileSize * 0.9f, 0, direction, tileSize, (raycastColor != null? RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None : RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None), 5f, raycastColor, raycastColor)) //Cast a tile-sized box in the intended direction from each tile in the mino
             {
                 if(hit.collider == null) continue; //If it didn't hit anything, skip this loop
                 if(hit.collider.gameObject.CompareTag("Obstruction")) //If it hit an obstruction, it's obstructed, unless that thing it hit was one of the other tiles in the mino

@@ -29,25 +29,45 @@ public class Gun : MonoBehaviour
             ammoText.text = _ammo.ToString(); 
         } 
     }
-    [SerializeField] int _ammo = 10;
-    int ammoMax = 10;
+    [SerializeField] int _ammo = 100;
+    int ammoMax = 100;
     [SerializeField] TextMeshProUGUI ammoText;
 
     [SerializeField] GameObject shootParticle;
     [SerializeField] AudioClip shootSound;
     [SerializeField] float screenShakeStrength;
 
+    [SerializeField] float fireRate = 0.2f;
+    float fireTimer;
+    InputAction shootInput;
+
     Background bgManager;
 
     private void Awake()
     {
         input = actionAsset.FindActionMap("Gameplay");
-        input.FindAction("Shoot").started += Shoot;
+        shootInput = input.FindAction("Shoot");
+        shootInput.started += ShootAction;
         bgManager = FindAnyObjectByType<Background>();
         impulseSource = GetComponent<CinemachineImpulseSource>();
+        fireTimer = fireRate;
     }
 
-    void Shoot(InputAction.CallbackContext ctx)
+    private void Update()
+    {
+        if(shootInput.phase == InputActionPhase.Performed)
+        {
+            fireTimer -= Time.deltaTime;
+            if(fireTimer <= 0)
+            {
+                Shoot();
+                fireTimer = fireRate;
+            }
+        }
+    }
+
+
+    void Shoot(InputAction.CallbackContext? ctx = null)
     {
         if (!GameManager.instance.acceptingInput)
             return;
@@ -56,7 +76,7 @@ public class Gun : MonoBehaviour
 
         ammoCount--;
 
-        Vector2 clickLocation = GameManager.camera.ScreenToWorldPoint(ctx.ReadValue<Vector2>());
+        Vector2 clickLocation = GameManager.camera.ScreenToWorldPoint(shootInput.ReadValue<Vector2>());
 
         //Hit particle
         Instantiate(shootParticle, (Vector3)clickLocation + Vector3.back, Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
@@ -89,6 +109,7 @@ public class Gun : MonoBehaviour
         if (hitBackground)
             bgManager.ShootBackground(clickLocation);
     }
+    void ShootAction(InputAction.CallbackContext ctx) { Shoot(ctx); }
     public void AddAmmo(int ammoToAdd)
     {
         ammoCount += ammoToAdd;

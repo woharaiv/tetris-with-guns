@@ -12,7 +12,7 @@ public class Background : MonoBehaviour
 
     [SerializeField] float backgroundScalar = 0.1f;
 
-    Camera camera;
+    new Camera camera;
     Vector2 cameraBasePos;
 
     float xBound;

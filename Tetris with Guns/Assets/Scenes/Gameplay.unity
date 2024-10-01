@@ -1507,7 +1507,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &608110613
 Transform:
   m_ObjectHideFlags: 0
@@ -1707,7 +1707,8 @@ MonoBehaviour:
   ammoText: {fileID: 1933950402}
   shootParticle: {fileID: 2972642729678921740, guid: 7d0d9047857cdf74980d342d17d187ce, type: 3}
   shootSound: {fileID: 8300000, guid: 8e8416d479e0b564bb624618e51611a3, type: 3}
-  screenShakeStrength: 3
+  screenShakeStrength: 1
+  fireRate: 0.05
 --- !u!4 &664488821
 Transform:
   m_ObjectHideFlags: 0
