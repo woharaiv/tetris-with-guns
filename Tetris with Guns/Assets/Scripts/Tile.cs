@@ -7,7 +7,7 @@ using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Tile : MonoBehaviour
 {
-    static float gravityMod = 50f;
+    static float gravityMod = 0.1f;
 
     public float timestamp = -1f;
     public Tetramino owner;
@@ -35,7 +35,7 @@ public class Tile : MonoBehaviour
         if(usingGravity)
         {
             //Fall with gravity
-            Vector3 fallingVelocity = Vector3.down * Time.deltaTime * GameManager.instance.gravity * GameManager.instance.softDropSpeedMult * gravityMod * Time.deltaTime;
+            Vector3 fallingVelocity = Vector3.down * (Time.deltaTime * GameManager.instance.gravity * GameManager.instance.softDropSpeedMult * gravityMod);
             foreach(Collider2D other in Physics2D.OverlapPointAll(transform.position + fallingVelocity + Vector3.down / 2f * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"),RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None, 10f))
             {
                 Tile tileComponent = other.GetComponent<Tile>();
