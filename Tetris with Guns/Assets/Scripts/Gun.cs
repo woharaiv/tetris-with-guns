@@ -21,24 +21,25 @@ public class Gun : MonoBehaviour
     { 
         get 
         { 
-            return _ammo; 
+            return heldWeaponAmmos[activeWeaponIndex]; 
         }
         set 
-        { 
-            _ammo = value;
+        {
+            heldWeaponAmmos[activeWeaponIndex] = value;
             if(usingAmmo)
-                ammoText.text = _ammo.ToString(); 
+                ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString(); 
         } 
     }
     [SerializeField] int _ammo = 100;
     int ammoMax = 100;
     [SerializeField] TextMeshProUGUI ammoText;
-    bool usingAmmo;
+    bool usingAmmo = true;
 
     [SerializeField] GameObject shootParticle;
     [SerializeField] AudioClip shootSound;
     [SerializeField] float screenShakeStrength;
     float shotSpread;
+    int shotDamage = 1;
 
     [SerializeField] float fireRate = 0.2f;
     float fireTimer;
@@ -65,7 +66,7 @@ public class Gun : MonoBehaviour
         switchWeaponInput.started += SwitchWeapon;
         bgManager = FindAnyObjectByType<Background>();
         impulseSource = GetComponent<CinemachineImpulseSource>();
-        if(!ammoText)
+        if(ammoText == null)
             usingAmmo = false;
         heldWeaponTypes = new List<WeaponType>();
         heldWeaponAmmos = new List<int>();
@@ -104,10 +105,10 @@ public class Gun : MonoBehaviour
             return;
         if (usingAmmo)
         {
-            if (heldWeaponAmmos[activeWeaponIndex] <= 0)
+            if (ammoCount <= 0)
                 return;
             else
-                heldWeaponAmmos[activeWeaponIndex]--;
+                ammoCount--;
         }
 
         Vector2 clickLocation = (Vector2)Camera.main.ScreenToWorldPoint(shootInput.ReadValue<Vector2>()) + (Random.insideUnitCircle * shotSpread);
@@ -130,14 +131,12 @@ public class Gun : MonoBehaviour
         Collider2D[] hit = Physics2D.OverlapPointAll(clickLocation);
         foreach (Collider2D col in hit)
         {
-            if(col.CompareTag("Obstruction"))
+            ICanBeShot hitCheck = col.gameObject.GetComponent<ICanBeShot>();
+            if(col.CompareTag("Obstruction") || hitCheck != null)
                 hitBackground = false;
             
-            Tile tileCheck = col.gameObject.GetComponent<Tile>();
-            if (tileCheck != null)
-            {
-                tileCheck.DamageTile();
-            }
+            if (hitCheck != null)
+                hitCheck.OnShot(clickLocation, shotDamage);
         }
         
         if (hitBackground)
@@ -166,15 +165,17 @@ public class Gun : MonoBehaviour
         screenShakeStrength = heldWeaponTypes[activeWeaponIndex].shakeStrength;
         doAutofire = heldWeaponTypes[activeWeaponIndex].autoFire;
         shotSpread = heldWeaponTypes[activeWeaponIndex].spreadRadius;
+        if (usingAmmo)
+            ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
     }
 
 
     public void AddAmmo(int ammoToAdd)
     {
-        heldWeaponAmmos[activeWeaponIndex] += ammoToAdd;
+        ammoCount += ammoToAdd;
     }
     public void Reload()
     {
-        heldWeaponAmmos[activeWeaponIndex] = heldWeaponTypes[activeWeaponIndex].ammo;
+        ammoCount = heldWeaponTypes[activeWeaponIndex].ammo;
     }
 }

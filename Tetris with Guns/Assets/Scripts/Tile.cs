@@ -5,7 +5,7 @@ using UnityEngine;
 using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 
 [RequireComponent(typeof(BoxCollider2D))]
-public class Tile : MonoBehaviour
+public class Tile : MonoBehaviour, ICanBeShot
 {
     static float gravityMod = 0.1f;
 
@@ -72,6 +72,10 @@ public class Tile : MonoBehaviour
                 transform.position += distanceToDrop * Playfield.tileSize * Vector3.down;
             distanceToDrop = 0;
         }
+    }
+    public void OnShot(Vector2 hitScreenPosition, int shotDamage)
+    {
+        DamageTile(shotDamage);
     }
 
     public void DamageTile(int damage = 1)
@@ -214,5 +218,5 @@ public class Tile : MonoBehaviour
         usingGravity = true;
         return true;
     }
-    
+
 }

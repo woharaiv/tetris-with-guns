@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     PieceSpawner pieceSpawner;
 
     public Tetramino activePiece;
-    bool gameRunning = true;
+    public bool gameRunning = true;
     float tileSize, stepTimer, stepTimerMax, DASWaitTimer, DASMoveTimer, spawnTimer, lineClearTimer;
     [SerializeField, Tooltip("The speed the piece falls down, at a rate of G/256 rows per frame.")] public float gravity;
     [SerializeField, Tooltip("How much faster pieces drop while holding down.")] public float softDropSpeedMult = 2;
