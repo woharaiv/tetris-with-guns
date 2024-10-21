@@ -8,6 +8,8 @@ using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 
 public class Tetramino : MonoBehaviour
 {
+    [HideInInspector] public static int randomIndexMax = 39;
+
     List<Tile> tiles = new();
     float tileSize;
     float timestamp;
@@ -24,7 +26,7 @@ public class Tetramino : MonoBehaviour
         tiles.AddRange(GetComponentsInChildren<Tile>());
         tileSize = Playfield.tileSize;
         timestamp = Time.realtimeSinceStartup;
-        int randomIndex = Random.Range(0, 39);
+        int randomIndex = Random.Range(0, randomIndexMax);
         if (randomIndex < tiles.Count)
         {
             Tile randomTile = tiles[randomIndex];

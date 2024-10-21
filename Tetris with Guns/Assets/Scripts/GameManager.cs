@@ -21,17 +21,21 @@ public class GameManager : MonoBehaviour
 
     PieceSpawner pieceSpawner;
 
-    public Tetramino activePiece;
-    public bool gameRunning = true;
+
+    [HideInInspector] public Tetramino activePiece;
+    [HideInInspector] public bool gameRunning = true;
+    
+    [Space, SerializeField] float crateSpawnChance = 0.1f;
+    
     float tileSize, stepTimer, stepTimerMax, DASWaitTimer, DASMoveTimer, spawnTimer, lineClearTimer;
-    [SerializeField, Tooltip("The speed the piece falls down, at a rate of G/256 rows per frame.")] public float gravity;
+    [Space, SerializeField, Tooltip("The speed the piece falls down, at a rate of G/256 rows per frame.")] public float gravity;
     [SerializeField, Tooltip("How much faster pieces drop while holding down.")] public float softDropSpeedMult = 2;
     [SerializeField, Tooltip("Number of seconds the player most hold one move button before Delayed Auto Shift (basically a built-in turbo button) activates.")] float DASTimerMax;
     [SerializeField, Tooltip("Number of seconds between horizontal steps once DAS is active.")] float DASInterval;
     [SerializeField, Tooltip("Number of seconds the game waits between placing a piece and spawning the next one.")] float spawnDelay = 0.5f;
     [SerializeField, Tooltip("Number of seconds the game pauses when a line is cleared before continuing play.")] float lineClearDelay = 0.67f;
 
-    [SerializeField] int level = 1;
+    [Space, SerializeField] int level = 1;
     [SerializeField] int lineGoal = 5;
     [SerializeField] int lineScore = 0;
 
@@ -64,6 +68,8 @@ public class GameManager : MonoBehaviour
         input.FindAction("Rotate").started += RotatePiece;
         softDrop = input.FindAction("Soft Drop");
         input.FindAction("Hard Drop").started += HardDrop;
+
+        Tetramino.randomIndexMax = (int)(4 / crateSpawnChance) - 1;
     }
 
     void OnEnable()
@@ -253,32 +259,37 @@ public class GameManager : MonoBehaviour
         activePiece = null;
         
         //Line cleared logic
-        int rowsCleared = Playfield.instance.RowClearCheck();
-        if (rowsCleared > 0)
+        List<float> rowsCleared = Playfield.instance.RowClearCheck();
+        if (rowsCleared.Count > 0)
         {
+            InfoPopup rowClearPopup = Instantiate(Resources.Load<GameObject>("Prefabs/InfoPopup"), Vector3.up * rowsCleared[0], Quaternion.identity, null).GetComponent<InfoPopup>();
             gameRunning = false;
             lineClearTimer = lineClearDelay;
-            switch(rowsCleared)
+            switch(rowsCleared.Count)
             {
                 case 1:
                     lineScore += 1;
+                    rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "CLEAR");
                     gun.AddAmmo(3);
                     break;
                 case 2:
                     gun.AddAmmo(6);
+                    rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "DOUBLE CLEAR!");
                     lineScore += 3;
                     break;
                 case 3:
                     gun.AddAmmo(9);
+                    rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "TRIPLE CLEAR!");
                     lineScore += 5;
                     break;
                 case 4:
-                    Debug.Log("boom tetris for jeff");
                     gun.AddAmmo(12);
+                    rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "MEGA CLEAR!!");
                     lineScore += 8;
                     break;
                 default:
                     gun.AddAmmo(15);
+                    rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "UNSTOPPABLE!!!");
                     lineScore += 10;
                     break;
             }

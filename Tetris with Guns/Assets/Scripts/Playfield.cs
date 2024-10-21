@@ -31,7 +31,7 @@ public class Playfield : MonoBehaviour
         UpdateWell(false);
     }
 
-    public int RowClearCheck()
+    public List<float> RowClearCheck()
     {
         float rowCheckY;
         clearedRowYs.Clear();
@@ -75,7 +75,7 @@ public class Playfield : MonoBehaviour
                 }
             }
         }
-        return clearedRowYs.Count;
+        return clearedRowYs;
     }
 
     public void DropAllTiles()

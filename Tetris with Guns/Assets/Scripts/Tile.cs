@@ -34,7 +34,7 @@ public class Tile : MonoBehaviour, ICanBeShot
             checkedGravThisFrame = false;
         if(usingGravity)
         {
-            //Fall with gravity
+            //Check if the tile should fall this frame
             Vector3 fallingVelocity = Vector3.down * (Time.deltaTime * GameManager.instance.gravity * GameManager.instance.softDropSpeedMult * gravityMod);
             foreach(Collider2D other in Physics2D.OverlapPointAll(transform.position + fallingVelocity + Vector3.down / 2f * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"),RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None, 10f))
             {
@@ -46,14 +46,15 @@ public class Tile : MonoBehaviour, ICanBeShot
                     break;
                 }
             }
-            if(usingGravity)
+            if(usingGravity) //If it should, move it down.
                 transform.position += fallingVelocity;
-            else
+            else //If it shouldn't, snap it to the tile.
             {
                 float yPos = transform.position.y;
                 float yPosTruncated = (float)System.Math.Truncate(yPos);
                 float yPosDecimalPortion = Mathf.Abs(yPos - yPosTruncated);
                 transform.position = new Vector3(transform.position.x, yPosTruncated + ((yPosDecimalPortion < 0.5 ? 0.25f : 0.75f) * Mathf.Sign(yPos)), transform.position.z);
+                GetComponent<TileCrateSmall>()?.TryMergeCrates();
             }
         }
     }

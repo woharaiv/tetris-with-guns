@@ -2204,6 +2204,7 @@ MonoBehaviour:
   actionAsset: {fileID: -944628639613478452, guid: 95c1404491397144dafa5cef9092ccc9, type: 3}
   activePiece: {fileID: 0}
   gameRunning: 1
+  crateSpawnChance: 1
   gravity: 20
   softDropSpeedMult: 10
   DASTimerMax: 0.23
