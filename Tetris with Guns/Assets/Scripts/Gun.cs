@@ -30,8 +30,6 @@ public class Gun : MonoBehaviour
                 ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString(); 
         } 
     }
-    [SerializeField] int _ammo = 100;
-    int ammoMax = 100;
     [SerializeField] TextMeshProUGUI ammoText;
     bool usingAmmo = true;
 

@@ -64,6 +64,14 @@ public class Tetramino : MonoBehaviour
         return false;
     }
 
+    public void PiecePlaced()
+    {
+        foreach (Tile tile in tiles)
+        {
+            tile.TilePlaced();
+        }
+    }
+
     //Possible wall kick directions
     readonly Vector2Int m2m1 = new Vector2Int(-2, -1);
     readonly Vector2Int m2p0 = new Vector2Int(-2,  0);

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Pistol
   fireRate: 0.3
-  ammo: 10
+  ammo: 100
   autoFire: 0
   spreadRadius: 0
   shakeStrength: 3

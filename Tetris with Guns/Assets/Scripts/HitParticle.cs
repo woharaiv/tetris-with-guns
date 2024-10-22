@@ -6,6 +6,6 @@ public class HitParticle : MonoBehaviour
 {
     private void OnDestroy()
     {
-        Debug.Log(gameObject);
+        
     }
 }

@@ -1703,7 +1703,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionAsset: {fileID: -944628639613478452, guid: 95c1404491397144dafa5cef9092ccc9, type: 3}
   screenFlashAsset: {fileID: 1598711719}
-  _ammo: 10
   ammoText: {fileID: 1933950402}
   shootParticle: {fileID: 2972642729678921740, guid: 7d0d9047857cdf74980d342d17d187ce, type: 3}
   shootSound: {fileID: 8300000, guid: 8e8416d479e0b564bb624618e51611a3, type: 3}

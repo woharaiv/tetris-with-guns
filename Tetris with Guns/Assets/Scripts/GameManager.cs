@@ -214,7 +214,7 @@ public class GameManager : MonoBehaviour
 
     void HardDrop(InputAction.CallbackContext ctx)
     {
-        if (!acceptingInput)
+        if (!acceptingInput || activePiece == null)
             return;
         int panicCount = 50;
         while(!Step())
@@ -255,9 +255,8 @@ public class GameManager : MonoBehaviour
             || activePiece.IsObstructed(Vector2.zero, null, Color.red))
             GameOver();
 
-        activePiece.isActivePiece = false;
-        activePiece = null;
-        
+        activePiece.PiecePlaced();
+
         //Line cleared logic
         List<float> rowsCleared = Playfield.instance.RowClearCheck();
         if (rowsCleared.Count > 0)
@@ -303,6 +302,9 @@ public class GameManager : MonoBehaviour
             }
 
         }
+        activePiece.isActivePiece = false;
+        activePiece = null;
+
         spawnTimer = spawnDelay;
     }
 

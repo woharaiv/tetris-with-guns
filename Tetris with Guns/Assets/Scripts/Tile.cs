@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
+using DG.Tweening;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Tile : MonoBehaviour, ICanBeShot
@@ -16,6 +17,7 @@ public class Tile : MonoBehaviour, ICanBeShot
     int tileHealth;
     [SerializeField] Sprite[] damageSprites;
     public Color color = Color.gray;
+    SpriteRenderer spriteRenderer;
 
     public bool checkedGravThisFrame = false;
     public bool alreadyCheckingGravity = false;
@@ -25,7 +27,10 @@ public class Tile : MonoBehaviour, ICanBeShot
     {
         Playfield.instance.tilesInPlay.Add(this);
         tileHealth = maxHealth;
-        color = GetComponent<SpriteRenderer>().color;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        color = spriteRenderer.color;
+        if(GetComponent<TileCrateSmall>() != null)
+            GetComponent<TileCrateSmall>().tileScript = this;
     }
 
     private void Update()
@@ -59,26 +64,37 @@ public class Tile : MonoBehaviour, ICanBeShot
         }
     }
 
+    public void TilePlaced()
+    {
+        GetComponent<TileCrateSmall>()?.TryMergeCrates();
+        DOTween.Sequence()
+                .Append(spriteRenderer.DOColor(Color.white, 0.1f))
+                .Append(spriteRenderer.DOColor(color, 0.9f))
+                .SetId(this);
+    }
+
     public void QueueDrop(int tiles = 1)
     {
         if(!usingGravity)
             distanceToDrop += tiles;
     }
-
     public void Drop()
     {
         if (distanceToDrop > 0)
         {
             if(!usingGravity)
+            {
                 transform.position += distanceToDrop * Playfield.tileSize * Vector3.down;
+                GetComponent<TileCrateSmall>()?.TryMergeCrates();
+            }
             distanceToDrop = 0;
         }
     }
+    
     public void OnShot(Vector2 hitScreenPosition, int shotDamage)
     {
         DamageTile(shotDamage);
     }
-
     public void DamageTile(int damage = 1)
     {
         tileHealth -= damage;
@@ -93,6 +109,7 @@ public class Tile : MonoBehaviour, ICanBeShot
 
     public void KillTile()
     {
+        DOTween.Kill(this);
         if (!owner || !owner.isActivePiece)
         {  
             //Makes gravity checks think this tile doesn't exist 
@@ -132,14 +149,9 @@ public class Tile : MonoBehaviour, ICanBeShot
             }
         }
 
-        if (Playfield.instance != null)
-        {
-            Playfield.instance.tilesInPlay.Remove(this);
-        }
-        if (owner != null)
-        {
-            owner.TileKilled(this);
-        }
+        Playfield.instance.tilesInPlay.Remove(this);
+        owner?.TileKilled(this);
+        GetComponent<TileCrateSmall>()?.SmashCrate();
         Destroy(gameObject);
     }
 
