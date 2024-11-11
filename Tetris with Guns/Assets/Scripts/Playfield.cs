@@ -40,22 +40,22 @@ public class Playfield : MonoBehaviour
             rowCheckY = playfieldCorners[2].y + tileSize * i + tileSize * 0.5f;
             Vector3 lineCastStart = new Vector2(playfieldCorners[0].x * 1.1f, rowCheckY);
             Vector3 linecastEnd = new Vector2(playfieldCorners[1].x * 1.1f, rowCheckY);
-            RaycastHit2D[] hits = Physics2D.LinecastAll(lineCastStart, linecastEnd, (drawClearCheck ? RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor : RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None), 10f); //Cast a ray across the playfield
-            if (hits.Length <= 2) //Don't bother if we hit two things (the walls) or less
+            RaycastHit2D[] hits = Physics2D.LinecastAll(lineCastStart, linecastEnd, LayerMask.GetMask("Default"), (drawClearCheck ? RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor : RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None), 10f); //Cast a ray across the playfield
+            if (hits.Length < playfieldWidth) //Don't bother if we hit less things than tiles needed to make a line
                 continue;
             
-            Tile[] tiles = new Tile[hits.Length - 2]; //Array to keep track of all the tiles found in this row (length is hits minus 2 becasue we know we're going to hit two walls)
+            HashSet<Tile> tiles = new HashSet<Tile>(); //Hashset to keep track of all the tiles found in this row
             int j = 0;
-            foreach(RaycastHit2D hit in hits) //Go through the list of hits; add any tiles found to the array
+            foreach(RaycastHit2D hit in hits) //Go through the list of hits; add any tiles found to the hashset
             {
                 Tile tileCheck = hit.transform.gameObject.GetComponent<Tile>();
                 if (tileCheck != null)
                 {
-                    tiles[j] = tileCheck;
+                    tiles.Add(tileCheck);
                     j++;
                 }
             }
-            if (tiles.Length == playfieldWidth) //If we found a number of tiles equal to the number of columns, we cleared that line. Delete all the tiles in it.
+            if (tiles.Count == playfieldWidth) //If we found a number of tiles equal to the number of columns, we cleared that line. Delete all the tiles in it.
             {
                 foreach (Tile tile in tiles)
                     tile.KillTile();
