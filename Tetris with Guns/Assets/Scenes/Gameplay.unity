@@ -2026,7 +2026,7 @@ GameObject:
   m_Component:
   - component: {fileID: 749931129}
   - component: {fileID: 749931131}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: WallL
   m_TagString: Obstruction
   m_Icon: {fileID: 0}
@@ -2103,7 +2103,7 @@ GameObject:
   m_Component:
   - component: {fileID: 817685245}
   - component: {fileID: 817685247}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Floor
   m_TagString: Obstruction
   m_Icon: {fileID: 0}
@@ -3623,6 +3623,64 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4451758043658131460, guid: 98d8c95ff18e2294e84f485c2f4b84bf, type: 3}
   m_PrefabInstance: {fileID: 1834252833}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1847144475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1847144477}
+  - component: {fileID: 1847144476}
+  m_Layer: 0
+  m_Name: ParticleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1847144476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847144475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a11eb848311fde14fab916256f028701, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minLaunchAngle: -1
+  maxLaunchAngle: 1
+  minLaunchSpeed: 1
+  maxLaunchSpeed: 2
+  minSpinSpeed: 1
+  maxSpinSpeed: 2
+  _particleGroups:
+  - name: DestroyTile
+    particles:
+    - {fileID: 3632694267205803008, guid: 97a4f084ef91cf9499e41fa66346bb33, type: 3}
+    - {fileID: 1829134326451996943, guid: 0501fd0a1610a604da0b48274f519593, type: 3}
+    - {fileID: 1182728983981253933, guid: f63ee87dabe89aa4d869443ab2501996, type: 3}
+    - {fileID: 6879093566365178947, guid: 7137f0a65957793489d11afa0ccef874, type: 3}
+    - {fileID: 5384653591800322582, guid: 42898f418e6d23446ae7fa67ca860e04, type: 3}
+--- !u!4 &1847144477
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847144475}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1868977876
 GameObject:
   m_ObjectHideFlags: 0
@@ -4163,7 +4221,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2072064598}
   - component: {fileID: 2072064600}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: WallR
   m_TagString: Obstruction
   m_Icon: {fileID: 0}
@@ -4236,6 +4294,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 859387503}
   - {fileID: 2062824834}
+  - {fileID: 1847144477}
   - {fileID: 1868977879}
   - {fileID: 519420032}
   - {fileID: 664488821}

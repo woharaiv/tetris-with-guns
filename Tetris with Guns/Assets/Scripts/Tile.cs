@@ -151,7 +151,18 @@ public class Tile : MonoBehaviour, ICanBeShot
 
         Playfield.instance.tilesInPlay.Remove(this);
         owner?.TileKilled(this);
-        GetComponent<TileCrateSmall>()?.SmashCrate();
+        TileCrateSmall crateScript = GetComponent<TileCrateSmall>();
+        if (crateScript != null)
+            crateScript.SmashCrate();
+        else
+        {
+            List<Particle> spawnedParticles = new List<Particle>();
+            ParticleManager.instance.SpawnAndLaunchParticles("DestroyTile", 5, transform.position, ref spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2);
+            foreach (var particle in spawnedParticles)
+            {
+                particle.GetComponent<SpriteRenderer>().color = this.color;
+            }
+        }
         Destroy(gameObject);
     }
 
