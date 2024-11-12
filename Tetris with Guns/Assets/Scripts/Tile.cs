@@ -151,7 +151,8 @@ public class Tile : MonoBehaviour, ICanBeShot
 
         Playfield.instance.tilesInPlay.Remove(this);
         owner?.TileKilled(this);
-        GetComponent<TileCrateSmall>()?.SmashCrate();
+        if(tileHealth <= 0)
+            GetComponent<ITileCrate>()?.SmashCrate();
         Destroy(gameObject);
     }
 

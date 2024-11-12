@@ -19,12 +19,12 @@ public class InfoPopup : MonoBehaviour
 
     private void Start()
     {
-        if (mode != InfoMode.NONE)
-            Initialize(mode);
+
     }
 
     public void Initialize(InfoMode mode, string customText = "TEXT NOT INITIALIZED")
     {
+        this.mode = mode;
         switch (mode)
         {
             case InfoMode.NONE:
@@ -33,7 +33,7 @@ public class InfoPopup : MonoBehaviour
             case InfoMode.CUSTOM_TEXT:
                 textMesh.text = customText;
                 spriteRenderer.enabled = false;
-                textMesh.DOFade(0f, 3f);
+                textMesh.DOFade(0f, 5f);
                 break;
             case InfoMode.AMMO:
                 spriteRenderer.sprite = sprites[0];
@@ -42,7 +42,7 @@ public class InfoPopup : MonoBehaviour
                 break;
 
         }
-        transform.DOMoveY(transform.position.y + 3, 3f).OnComplete(End);
+        transform.DOMoveY(transform.position.y + 3, (mode == InfoMode.CUSTOM_TEXT ? 5f : 3f)).OnComplete(End);
     }
 
     private void End()

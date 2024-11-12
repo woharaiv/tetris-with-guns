@@ -10,12 +10,12 @@ using Cinemachine;
 
 public class Gun : MonoBehaviour
 {
+    public static Gun instance;
     [SerializeField] InputActionAsset actionAsset;
     InputActionMap input;
+    public RawImage screenFlashAsset;
 
-    [SerializeField] RawImage screenFlashAsset;
-
-    CinemachineImpulseSource impulseSource;
+    public static CinemachineImpulseSource impulseSource;
 
     public int ammoCount 
     { 
@@ -30,14 +30,15 @@ public class Gun : MonoBehaviour
                 ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString(); 
         } 
     }
+    WeaponType activeWeapon
+    {
+        get
+        {
+            return heldWeaponTypes[activeWeaponIndex];
+        }
+    }
     [SerializeField] TextMeshProUGUI ammoText;
     bool usingAmmo = true;
-
-    [SerializeField] GameObject shootParticle;
-    [SerializeField] AudioClip shootSound;
-    [SerializeField] float screenShakeStrength;
-    float shotSpread;
-    int shotDamage = 1;
 
     [SerializeField] float fireRate = 0.2f;
     float fireTimer;
@@ -48,21 +49,19 @@ public class Gun : MonoBehaviour
     List<WeaponType> heldWeaponTypes;
     List<int> heldWeaponAmmos;
     [SerializeField] int activeWeaponIndex;
+    bool[] unlockedWeapons;
 
     InputAction shootInput;
     InputAction switchWeaponInput;
 
-    Background bgManager;
-
-
     private void Awake()
     {
+        instance = this;
         input = actionAsset.FindActionMap("Gameplay");
         shootInput = input.FindAction("Shoot");
         shootInput.started += ShootAction;
         switchWeaponInput = input.FindAction("Switch Weapon");
         switchWeaponInput.started += SwitchWeapon;
-        bgManager = FindAnyObjectByType<Background>();
         impulseSource = GetComponent<CinemachineImpulseSource>();
         if(ammoText == null)
             usingAmmo = false;
@@ -73,6 +72,12 @@ public class Gun : MonoBehaviour
             heldWeaponTypes.Add(weapon);
             heldWeaponAmmos.Add(weapon.ammo);
         }
+
+        unlockedWeapons = new bool[weapons.Length];
+        for (int i = 0; i < unlockedWeapons.Length; i++)
+            unlockedWeapons[i] = false;
+        unlockedWeapons[0] = true;
+
         activeWeaponIndex = 0;
         UpdateActiveWeapon();
         fireTimer = 0;
@@ -109,36 +114,9 @@ public class Gun : MonoBehaviour
                 ammoCount--;
         }
 
-        Vector2 clickLocation = (Vector2)Camera.main.ScreenToWorldPoint(shootInput.ReadValue<Vector2>()) + (Random.insideUnitCircle * shotSpread);
+        Vector2 clickLocation = (Vector2)Camera.main.ScreenToWorldPoint(shootInput.ReadValue<Vector2>());
 
-        //Hit particle
-        Instantiate(shootParticle, (Vector3)clickLocation + Vector3.back, Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
-        
-        //Gun sound
-        AudioSource.PlayClipAtPoint(shootSound, clickLocation);
-
-        //Screen flash
-        DOTween.Sequence()
-            .Append(screenFlashAsset.DOColor(new Color(1, 1, 1, 0.25f), 0.05f))
-            .Append(screenFlashAsset.DOColor(new Color(1, 1, 1, 0), 0.1f));
-
-        //Screen shake
-        impulseSource.GenerateImpulseAt(clickLocation, Random.insideUnitCircle.normalized * 0.1f * screenShakeStrength);
-
-        bool hitBackground = true;
-        Collider2D[] hit = Physics2D.OverlapPointAll(clickLocation);
-        foreach (Collider2D col in hit)
-        {
-            ICanBeShot hitCheck = col.gameObject.GetComponent<ICanBeShot>();
-            if(col.CompareTag("Obstruction") || hitCheck != null)
-                hitBackground = false;
-            
-            if (hitCheck != null)
-                hitCheck.OnShot(clickLocation, shotDamage);
-        }
-        
-        if (hitBackground)
-            bgManager.ShootBackground(clickLocation);
+        activeWeapon.Shoot(clickLocation);
 
         fireTimer = fireRate;
     }
@@ -151,7 +129,7 @@ public class Gun : MonoBehaviour
         int newActiveIndex;
         int.TryParse(ctx.control.name, out newActiveIndex);
         
-        if(newActiveIndex <= weapons.Length && newActiveIndex > 0)
+        if(newActiveIndex <= weapons.Length && newActiveIndex > 0 && unlockedWeapons[newActiveIndex - 1])
             activeWeaponIndex = newActiveIndex - 1;
         Debug.Log(activeWeaponIndex);
         UpdateActiveWeapon();
@@ -159,10 +137,8 @@ public class Gun : MonoBehaviour
 
     void UpdateActiveWeapon()
     {
-        fireTimer = fireRate = heldWeaponTypes[activeWeaponIndex].fireRate;
-        screenShakeStrength = heldWeaponTypes[activeWeaponIndex].shakeStrength;
-        doAutofire = heldWeaponTypes[activeWeaponIndex].autoFire;
-        shotSpread = heldWeaponTypes[activeWeaponIndex].spreadRadius;
+        fireTimer = fireRate = activeWeapon.fireRate;
+        doAutofire = activeWeapon.autoFire;
         if (usingAmmo)
             ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
     }
@@ -175,5 +151,44 @@ public class Gun : MonoBehaviour
     public void Reload()
     {
         ammoCount = heldWeaponTypes[activeWeaponIndex].ammo;
+    }
+
+    public string UnlockWeapon(int indexToUnlock)
+    {
+        if (indexToUnlock > 0 && indexToUnlock < unlockedWeapons.Length)
+        {
+            if (unlockedWeapons[indexToUnlock])
+                return "";
+            else
+            {
+                unlockedWeapons[indexToUnlock] = true;
+                return ("Unlocked " + heldWeaponTypes[indexToUnlock].name + "! (Press " + indexToUnlock + ")");
+            }
+        }
+        return "Unknown Gun";
+    }
+    public string UnlockRandomWeapon()
+    {
+        bool allWeaponsUnlocked = true;
+        foreach (var unlocked in unlockedWeapons)
+        {
+            if(!unlocked)
+            {
+                allWeaponsUnlocked = false; 
+                break;
+            }
+        }
+        if (allWeaponsUnlocked)
+            return "";
+        else
+        {
+            int indexToUnlock = 0;
+            do
+            {
+                indexToUnlock = Random.Range(1, unlockedWeapons.Length);
+            } while (unlockedWeapons[indexToUnlock]);
+
+            return UnlockWeapon(indexToUnlock);
+        }
     }
 }

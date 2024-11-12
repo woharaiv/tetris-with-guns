@@ -208,11 +208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionAsset: {fileID: -944628639613478452, guid: 95c1404491397144dafa5cef9092ccc9, type: 3}
   screenFlashAsset: {fileID: 2130155886}
-  _ammo: 10
   ammoText: {fileID: 0}
-  shootParticle: {fileID: 2972642729678921740, guid: 7d0d9047857cdf74980d342d17d187ce, type: 3}
-  shootSound: {fileID: 8300000, guid: 8e8416d479e0b564bb624618e51611a3, type: 3}
-  screenShakeStrength: 1
   fireRate: 0.05
   canSwitchWeapon: 1
   weapons:
@@ -880,7 +876,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa61e2089a4359408a21ec433cde3ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletHole: {fileID: 5642428559823189769, guid: 0f47a23c3c1bbeb45b660d5ce9f98c09, type: 3}
   backgroundImage: {fileID: 1199306422}
   movementVelocity: {x: 1, y: 1}
   backgroundScalar: 0.083125
