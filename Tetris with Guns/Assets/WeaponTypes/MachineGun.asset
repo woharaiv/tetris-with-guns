@@ -16,5 +16,6 @@ MonoBehaviour:
   fireRate: 0.05
   ammo: 99
   autoFire: 1
-  spreadRadius: 0.5
-  shakeStrength: 1
+  shootParticle: {fileID: 2972642729678921740, guid: 7d0d9047857cdf74980d342d17d187ce, type: 3}
+  shootSound: {fileID: 8300000, guid: 8e8416d479e0b564bb624618e51611a3, type: 3}
+  shootScript: {fileID: 11400000, guid: 11f988165fcc88c409ae6e9e65e99353, type: 2}

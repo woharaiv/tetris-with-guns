@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48c6febc9ae9b72419878b0750f5fe37, type: 3}
-  m_Name: Pistol
+  m_Name: Shotgun
   m_EditorClassIdentifier: 
-  name: Pistol
-  fireRate: 0.3
-  ammo: 100
+  name: Shotgun
+  fireRate: 1
+  ammo: 5
   autoFire: 0
   shootParticle: {fileID: 2972642729678921740, guid: 7d0d9047857cdf74980d342d17d187ce, type: 3}
   shootSound: {fileID: 8300000, guid: 8e8416d479e0b564bb624618e51611a3, type: 3}
-  shootScript: {fileID: 11400000, guid: 927aaae027f95e1438872149cc133283, type: 2}
+  shootScript: {fileID: 11400000, guid: c50bcd8305a3da044966919c46dca9f1, type: 2}

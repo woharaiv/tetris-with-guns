@@ -314,4 +314,11 @@ public class GameManager : MonoBehaviour
         gameRunning = false;
         lineClearTimer = -999;
     }
+
+    public static GameObject SpawnInfoPopup(Vector3 pos, InfoMode infoMode, string infoText = "TEXT NOT INITIALIZED")
+    {
+        GameObject infoPopup = Instantiate(Resources.Load<GameObject>("Prefabs/InfoPopup"), pos, Quaternion.identity, null);
+        infoPopup.GetComponent<InfoPopup>().Initialize(infoMode, infoText);
+        return infoPopup;
+    }
 }

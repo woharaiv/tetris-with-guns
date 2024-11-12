@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class Background : MonoBehaviour
 {
-    [SerializeField] GameObject bulletHole;
     List<GameObject> bulletHoles = new List<GameObject>();
     [SerializeField] RawImage backgroundImage;
     [SerializeField] Vector2 movementVelocity = Vector2.one;
@@ -15,14 +14,17 @@ public class Background : MonoBehaviour
     new Camera camera;
     Vector2 cameraBasePos;
 
+    public static Background instance;
+
     float xBound;
     float yBound;
     private void Start()
     {
-        xBound = 10.67f + (bulletHole.transform.localScale.x / 2);
-        yBound = 6f + (bulletHole.transform.localScale.y / 2);
+        xBound = 16f;
+        yBound = 9f;
         camera = Camera.main;
         cameraBasePos = camera.transform.localPosition;
+        instance = this;
     }
     private void Update()
     {
@@ -39,7 +41,7 @@ public class Background : MonoBehaviour
         }
     }
 
-    public void ShootBackground(Vector2 pos)
+    public void ShootBackground(Vector2 pos, GameObject bulletHole)
     {
         GameObject hole = Instantiate(bulletHole, (Vector3)pos + Vector3.forward * 9f, Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
         bulletHoles.Add(hole);
