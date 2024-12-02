@@ -27,14 +27,17 @@ public class Gun : MonoBehaviour
         {
             heldWeaponAmmos[activeWeaponIndex] = value;
             if(usingAmmo)
-                ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString(); 
+            {
+                ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
+                ammoMeters[activeWeaponIndex].value = (float)value/weapons[activeWeaponIndex].ammo;
+            }
         } 
     }
     WeaponType activeWeapon
     {
         get
         {
-            return heldWeaponTypes[activeWeaponIndex];
+            return weapons[activeWeaponIndex];
         }
     }
     [SerializeField] TextMeshProUGUI ammoText;
@@ -45,11 +48,11 @@ public class Gun : MonoBehaviour
     bool doAutofire;
 
     [SerializeField] bool canSwitchWeapon;
-    [SerializeField] WeaponType[] weapons;
-    List<WeaponType> heldWeaponTypes;
+    [SerializeField] public WeaponType[] weapons;
     List<int> heldWeaponAmmos;
     [SerializeField] int activeWeaponIndex;
     bool[] unlockedWeapons;
+    [HideInInspector] public List<Slider> ammoMeters = new List<Slider>();
 
     InputAction shootInput;
     InputAction switchWeaponInput;
@@ -65,11 +68,9 @@ public class Gun : MonoBehaviour
         impulseSource = GetComponent<CinemachineImpulseSource>();
         if(ammoText == null)
             usingAmmo = false;
-        heldWeaponTypes = new List<WeaponType>();
         heldWeaponAmmos = new List<int>();
         foreach(WeaponType weapon in weapons)
         {
-            heldWeaponTypes.Add(weapon);
             heldWeaponAmmos.Add(weapon.ammo);
         }
 
@@ -148,9 +149,44 @@ public class Gun : MonoBehaviour
     {
         ammoCount += ammoToAdd;
     }
+    public void AddAmmo(int ammoToAdd, int indexToAddTo)
+    {
+        heldWeaponAmmos[indexToAddTo] += ammoToAdd;
+        if (usingAmmo)
+        {
+            ammoMeters[indexToAddTo].value = (float)heldWeaponAmmos[indexToAddTo] / weapons[indexToAddTo].ammo;
+            if(indexToAddTo == activeWeaponIndex)
+                ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
+        }
+    }
+
+    /// <summary>
+    /// Moves particles to the ammo bar of the gun active at the time of running this code, and makes some of them reload ammo of that weapon when they reach the bar.
+    /// When each particle moves is randomly determined, so exactly when the ammo will be given to the player is unclear.
+    /// </summary>
+    /// <remarks>If totalAmountToReload is less than 0, each particle will reload 1 ammo. If it's less than or equal to the length of particlesToMove,
+    /// that many particles will reload 1 ammo each when they reach the meter. If it's greater, the amount to reload will be distributed among the particles,
+    /// with each particle reloading at least the truncated quotient and the remainder split evenly among some particles.</remarks>
+    public void ScheduleMoveAmmoToReload(List<Particle> particlesToMove, int totalAmountToReload = -1)
+    {
+        float delayRange = (float)particlesToMove.Count / 50;
+        int excessAmmo = 0;
+        int ammoPerParticle = 1;
+        if (totalAmountToReload >= 0)
+        {
+            ammoPerParticle = totalAmountToReload/particlesToMove.Count;
+            excessAmmo = totalAmountToReload % particlesToMove.Count;
+        }
+        foreach (Particle p in particlesToMove)
+        {
+            p.ScheduleMoveToPoint(ActiveAmmoMeterPos(), 1f + Random.Range(Mathf.Max(-delayRange, -0.9f), delayRange))
+                .AppendCallback(()=>AddAmmo(ammoPerParticle + (excessAmmo-- >= 0? 1 : 0), activeWeaponIndex));
+        }
+    }
+
     public void Reload()
     {
-        ammoCount = heldWeaponTypes[activeWeaponIndex].ammo;
+        ammoCount = weapons[activeWeaponIndex].ammo;
     }
 
     public string UnlockWeapon(int indexToUnlock)
@@ -162,7 +198,7 @@ public class Gun : MonoBehaviour
             else
             {
                 unlockedWeapons[indexToUnlock] = true;
-                return ("Unlocked " + heldWeaponTypes[indexToUnlock].name + "! (Press " + indexToUnlock + ")");
+                return ("Unlocked " + weapons[indexToUnlock].name + "! (Press " + indexToUnlock + ")");
             }
         }
         return "Unknown Gun";
@@ -190,5 +226,10 @@ public class Gun : MonoBehaviour
 
             return UnlockWeapon(indexToUnlock);
         }
+    }
+
+    public Vector3 ActiveAmmoMeterPos()
+    {
+        return ammoMeters[activeWeaponIndex].transform.position;
     }
 }

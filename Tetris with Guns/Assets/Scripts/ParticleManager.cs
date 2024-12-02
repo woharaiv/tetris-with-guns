@@ -41,11 +41,11 @@ public class ParticleManager : MonoBehaviour
         }
     }
 
-    public bool SpawnParticles(string group, int count, Vector2 origin, ref List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f)
+    public bool SpawnParticles(string group, int count, Vector2 origin, out List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f)
     {
-        spawnedParticles.Clear();
         if (particleGroups.TryGetValue(group, out ParticleGroup particleGroup))
         {
+            spawnedParticles = new List<Particle>();
             for (int i = 0; i < count; i++)
             {
                 Vector2 spawnPoint = origin;
@@ -70,14 +70,16 @@ public class ParticleManager : MonoBehaviour
         else
         {
             Debug.LogWarning("Tried to spawn particles from group \"" +  group + "\" but no particle group of that name was found");
+            spawnedParticles = null;
             return false;
         }
     }
 
-    public bool SpawnAndLaunchParticles(string group, int count, Vector2 origin, ref List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f)
+    public bool SpawnAndLaunchParticles(string group, int count, Vector2 origin, out List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f)
     {
-        if (SpawnParticles(group, count, origin, ref spawnedParticles, spawnShape, spawnRadius))
+        if (SpawnParticles(group, count, origin, out List<Particle> spawned, spawnShape, spawnRadius))
         {
+            spawnedParticles = spawned;
             foreach (var particle in spawnedParticles)
             {
                 float launchAngle = Random.Range(minLaunchAngle, maxLaunchAngle);
@@ -92,6 +94,7 @@ public class ParticleManager : MonoBehaviour
         }
         else
         {
+            spawnedParticles = null;
             return false;
         }
     }

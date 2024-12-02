@@ -35,6 +35,7 @@ public class Playfield : MonoBehaviour
     {
         float rowCheckY;
         clearedRowYs.Clear();
+        List<Tile> tilesToKill = new List<Tile>();
         for(int i = 0; i < playfieldHeight; i++) //Check for a line clear on each row
         {
             rowCheckY = playfieldCorners[2].y + tileSize * i + tileSize * 0.5f;
@@ -58,24 +59,39 @@ public class Playfield : MonoBehaviour
             if (tiles.Count == playfieldWidth) //If we found a number of tiles equal to the number of columns, we cleared that line. Delete all the tiles in it.
             {
                 foreach (Tile tile in tiles)
-                    tile.KillTile();
+                    tilesToKill.Add(tile);
                 clearedRowYs.Add(rowCheckY);
             }
         }
-       foreach(float yPos in clearedRowYs)
-       {
-            Debug.LogFormat("Dropping tiles above y: {0:N}", yPos);
-            Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
-            foreach (Tile tile in tilesInPlay)
-            {
-                Physics2D.OverlapCircle(tile.transform.position, tileSize * 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
-                if(tile.transform.position.y + tileSize * 0.1 > yPos) //For each row cleared, drop all the tiles that lie above that line
-                {
-                    tile.QueueDrop();
-                }
-            }
+        Tile.KillType clearType;
+        switch(clearedRowYs.Count)
+        {
+            case 0:  clearType = Tile.KillType.Shot; break;
+            case 1:  clearType = Tile.KillType.ClearSingle; break;
+            case 2:  clearType = Tile.KillType.ClearDouble; break;
+            case 3:  clearType = Tile.KillType.ClearTriple; break;
+            case 4:  clearType = Tile.KillType.ClearQuad; break;
+            default: clearType = Tile.KillType.ClearMega; break;
+
         }
-        return clearedRowYs;
+        foreach(Tile t in tilesToKill)
+        {
+            t.KillTile(clearType);
+        }
+        foreach(float yPos in clearedRowYs)
+        {
+             Debug.LogFormat("Dropping tiles above y: {0:N}", yPos);
+             Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
+             foreach (Tile tile in tilesInPlay)
+             {
+                 Physics2D.OverlapCircle(tile.transform.position, tileSize * 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
+                 if(tile.transform.position.y + tileSize * 0.1 > yPos) //For each row cleared, drop all the tiles that lie above that line
+                 {
+                     tile.QueueDrop();
+                 }
+             }
+         }
+         return clearedRowYs;
     }
 
     public void DropAllTiles()

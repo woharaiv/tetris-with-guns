@@ -7,11 +7,17 @@ using DG.Tweening;
 public class Particle : MonoBehaviour
 {
     static readonly float moveDuration = 1.0f;
-    public IEnumerator ScheduleMoveToPoint(Vector2 point, float delay)
+    public Sequence ScheduleMoveToPoint(Vector2 point, float delay)
     {
-        yield return new WaitForSeconds(delay);
-        Tween moveTween = GetComponent<Rigidbody2D>().DOMove(point, moveDuration);
-        yield return moveTween.WaitForCompletion();
-        Destroy(gameObject);
+        Sequence ret = DOTween.Sequence();
+        ret.AppendInterval(delay)
+            .AppendCallback(()=>DisableCollision())
+            .Append(GetComponent<Rigidbody2D>().DOMove(point, moveDuration))
+            .AppendCallback(() => Destroy(gameObject));
+        return ret;
+    }
+    void DisableCollision()
+    {
+        GetComponent<BoxCollider2D>().enabled = false;
     }
 }
