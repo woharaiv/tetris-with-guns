@@ -31,7 +31,7 @@ public class Playfield : MonoBehaviour
         UpdateWell(false);
     }
 
-    public List<float> RowClearCheck()
+    public List<float> RowClearCheck(out List<Particle> particles)
     {
         float rowCheckY;
         clearedRowYs.Clear();
@@ -66,7 +66,7 @@ public class Playfield : MonoBehaviour
         Tile.KillType clearType;
         switch(clearedRowYs.Count)
         {
-            case 0:  clearType = Tile.KillType.Shot; break;
+            case 0:  clearType = Tile.KillType.Default; break;
             case 1:  clearType = Tile.KillType.ClearSingle; break;
             case 2:  clearType = Tile.KillType.ClearDouble; break;
             case 3:  clearType = Tile.KillType.ClearTriple; break;
@@ -74,9 +74,13 @@ public class Playfield : MonoBehaviour
             default: clearType = Tile.KillType.ClearMega; break;
 
         }
+        particles = new List<Particle>();
         foreach(Tile t in tilesToKill)
         {
-            t.KillTile(clearType);
+            //AddRange throws an error if you try to add null
+            List<Particle> possibleParticles = t.KillTile(clearType, true);
+            if(possibleParticles != null)
+                particles.AddRange(possibleParticles);
         }
         foreach(float yPos in clearedRowYs)
         {
@@ -90,8 +94,8 @@ public class Playfield : MonoBehaviour
                      tile.QueueDrop();
                  }
              }
-         }
-         return clearedRowYs;
+        }
+        return clearedRowYs;
     }
 
     public void DropAllTiles()

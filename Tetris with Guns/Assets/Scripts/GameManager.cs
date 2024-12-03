@@ -70,6 +70,8 @@ public class GameManager : MonoBehaviour
         input.FindAction("Hard Drop").started += HardDrop;
 
         Tetramino.randomIndexMax = (int)(4 / crateSpawnChance) - 1;
+
+        DOTween.SetTweensCapacity(200, 150);
     }
 
     void OnEnable()
@@ -257,8 +259,10 @@ public class GameManager : MonoBehaviour
 
         activePiece.PiecePlaced();
 
+        List<Particle> rowClearParticles;
         //Line cleared logic
-        List<float> rowsCleared = Playfield.instance.RowClearCheck();
+        List<float> rowsCleared = Playfield.instance.RowClearCheck(out rowClearParticles);
+        int ammoToAdd = 0;
         if (rowsCleared.Count > 0)
         {
             InfoPopup rowClearPopup = Instantiate(Resources.Load<GameObject>("Prefabs/InfoPopup"), Vector3.up * rowsCleared[0], Quaternion.identity, null).GetComponent<InfoPopup>();
@@ -267,31 +271,32 @@ public class GameManager : MonoBehaviour
             switch(rowsCleared.Count)
             {
                 case 1:
-                    lineScore += 1;
                     rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "CLEAR");
-                    gun.AddAmmo(3);
+                    lineScore += 1;
+                    ammoToAdd = 3;
                     break;
                 case 2:
-                    gun.AddAmmo(6);
                     rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "DOUBLE CLEAR!");
                     lineScore += 3;
+                    ammoToAdd = 6;
                     break;
                 case 3:
-                    gun.AddAmmo(9);
                     rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "TRIPLE CLEAR!");
                     lineScore += 5;
+                    ammoToAdd = 9;
                     break;
                 case 4:
-                    gun.AddAmmo(12);
                     rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "MEGA CLEAR!!");
                     lineScore += 8;
+                    ammoToAdd = 12;
                     break;
                 default:
-                    gun.AddAmmo(15);
                     rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "UNSTOPPABLE!!!");
                     lineScore += 10;
+                    ammoToAdd = 15;
                     break;
             }
+            
             while(lineScore >= lineGoal && lineGoal > 0)
             {
                 lineScore -= lineGoal;
@@ -302,6 +307,7 @@ public class GameManager : MonoBehaviour
             }
 
         }
+        gun.ScheduleMoveAmmoToReload(rowClearParticles, ammoToAdd);
         activePiece.isActivePiece = false;
         activePiece = null;
 

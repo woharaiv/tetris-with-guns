@@ -6,14 +6,26 @@ using UnityEngine.UI;
 
 public class AmmoMeters : MonoBehaviour
 {
-    [SerializeField] public GameObject[] ammoBars;
+    public static AmmoMeters Instance;
+    [SerializeField] public GameObject[] GameObjects;
+    [SerializeField] public GameObject[] Tints;
+    public Slider[] Sliders;
+    public Image[] FillImages;
     public Slider[] ammoFills { get; private set; }
-    private void Start()
+    private void Awake()
     {
-        for(int i = 0; i < ammoBars.Length; i++)
+        Instance = this;
+        Sliders = new Slider[GameObjects.Length];
+        FillImages = new Image[GameObjects.Length];
+        for(int i = 0; i < GameObjects.Length; i++)
         {
-            Gun.instance.ammoMeters.Add(ammoBars[i].GetComponent<Slider>());
-            ammoBars[i].GetComponentInChildren<TextMeshProUGUI>().text = Gun.instance.weapons[i].name;
+            GameObjects[i].GetComponentInChildren<TextMeshProUGUI>().text = Gun.instance.weapons[i].name;
+            Sliders[i] = GameObjects[i].GetComponent<Slider>();
+            foreach(Transform child in GameObjects[i].transform)
+            {
+                if(child.name.Equals("Fill"))
+                    FillImages[i] = child.GetComponent<Image>();
+            }
         }
     }
 }

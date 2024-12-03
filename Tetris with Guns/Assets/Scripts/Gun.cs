@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.Windows;
 using TMPro;
 using Cinemachine;
+using System.Drawing;
 
 public class Gun : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class Gun : MonoBehaviour
 
     public static CinemachineImpulseSource impulseSource;
 
-    public int ammoCount 
+    public float ammoCount 
     { 
         get 
         { 
@@ -26,10 +27,12 @@ public class Gun : MonoBehaviour
         set 
         {
             heldWeaponAmmos[activeWeaponIndex] = value;
-            if(usingAmmo)
+            if(sceneUsesAmmo)
             {
-                ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
-                ammoMeters[activeWeaponIndex].value = (float)value/weapons[activeWeaponIndex].ammo;
+                AmmoMeters.Instance.Sliders[activeWeaponIndex].value = (float)value/weapons[activeWeaponIndex].ammo;
+                DOTween.Sequence()
+                    .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(UnityEngine.Color.white, 0.1f))
+                    .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(new UnityEngine.Color(200, 200, 210), 0.9f));
             }
         } 
     }
@@ -40,19 +43,18 @@ public class Gun : MonoBehaviour
             return weapons[activeWeaponIndex];
         }
     }
-    [SerializeField] TextMeshProUGUI ammoText;
-    bool usingAmmo = true;
+    [SerializeField] bool sceneUsesAmmo = true;
 
     [SerializeField] float fireRate = 0.2f;
     float fireTimer;
     bool doAutofire;
 
     [SerializeField] bool canSwitchWeapon;
+    [SerializeField] bool startWithAllWeapons = false;
     [SerializeField] public WeaponType[] weapons;
-    List<int> heldWeaponAmmos;
+    List<float> heldWeaponAmmos;
     [SerializeField] int activeWeaponIndex;
     bool[] unlockedWeapons;
-    [HideInInspector] public List<Slider> ammoMeters = new List<Slider>();
 
     InputAction shootInput;
     InputAction switchWeaponInput;
@@ -66,9 +68,7 @@ public class Gun : MonoBehaviour
         switchWeaponInput = input.FindAction("Switch Weapon");
         switchWeaponInput.started += SwitchWeapon;
         impulseSource = GetComponent<CinemachineImpulseSource>();
-        if(ammoText == null)
-            usingAmmo = false;
-        heldWeaponAmmos = new List<int>();
+        heldWeaponAmmos = new List<float>();
         foreach(WeaponType weapon in weapons)
         {
             heldWeaponAmmos.Add(weapon.ammo);
@@ -76,12 +76,22 @@ public class Gun : MonoBehaviour
 
         unlockedWeapons = new bool[weapons.Length];
         for (int i = 0; i < unlockedWeapons.Length; i++)
-            unlockedWeapons[i] = false;
+        {
+            unlockedWeapons[i] = startWithAllWeapons;
+        }
         unlockedWeapons[0] = true;
 
         activeWeaponIndex = 0;
-        UpdateActiveWeapon();
         fireTimer = 0;
+    }
+
+    private void Start()
+    {
+        for (int i = 0; i < AmmoMeters.Instance.GameObjects.Length; i++)
+        {
+            AmmoMeters.Instance.GameObjects[i].SetActive(unlockedWeapons[i]); 
+        }
+        UpdateActiveWeapon();
     }
 
     private void OnDestroy()
@@ -107,7 +117,7 @@ public class Gun : MonoBehaviour
             return;
         if (fireTimer > 0)
             return;
-        if (usingAmmo)
+        if (sceneUsesAmmo)
         {
             if (ammoCount <= 0)
                 return;
@@ -132,7 +142,6 @@ public class Gun : MonoBehaviour
         
         if(newActiveIndex <= weapons.Length && newActiveIndex > 0 && unlockedWeapons[newActiveIndex - 1])
             activeWeaponIndex = newActiveIndex - 1;
-        Debug.Log(activeWeaponIndex);
         UpdateActiveWeapon();
     }
 
@@ -140,23 +149,23 @@ public class Gun : MonoBehaviour
     {
         fireTimer = fireRate = activeWeapon.fireRate;
         doAutofire = activeWeapon.autoFire;
-        if (usingAmmo)
-            ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
-    }
-
-
-    public void AddAmmo(int ammoToAdd)
-    {
-        ammoCount += ammoToAdd;
-    }
-    public void AddAmmo(int ammoToAdd, int indexToAddTo)
-    {
-        heldWeaponAmmos[indexToAddTo] += ammoToAdd;
-        if (usingAmmo)
+        for(int i = 0; i < AmmoMeters.Instance.Tints.Length; i++)
         {
-            ammoMeters[indexToAddTo].value = (float)heldWeaponAmmos[indexToAddTo] / weapons[indexToAddTo].ammo;
-            if(indexToAddTo == activeWeaponIndex)
-                ammoText.text = heldWeaponAmmos[activeWeaponIndex].ToString();
+            AmmoMeters.Instance.Tints[i].SetActive(i != activeWeaponIndex);
+        }
+    }
+
+
+    public void AddAmmo(float ammoToAdd)
+    {
+        ammoCount = Mathf.Min(ammoCount + ammoToAdd, weapons[activeWeaponIndex].ammo);
+    }
+    public void AddAmmo(float ammoToAdd, int indexToAddTo)
+    {
+        heldWeaponAmmos[indexToAddTo] = Mathf.Min(heldWeaponAmmos[indexToAddTo] + ammoToAdd, weapons[indexToAddTo].ammo);
+        if (sceneUsesAmmo)
+        {
+            AmmoMeters.Instance.Sliders[indexToAddTo].value = heldWeaponAmmos[indexToAddTo] / weapons[indexToAddTo].ammo;
         }
     }
 
@@ -169,18 +178,19 @@ public class Gun : MonoBehaviour
     /// with each particle reloading at least the truncated quotient and the remainder split evenly among some particles.</remarks>
     public void ScheduleMoveAmmoToReload(List<Particle> particlesToMove, int totalAmountToReload = -1)
     {
+        if(particlesToMove.Count <= 0)
+            return;
         float delayRange = (float)particlesToMove.Count / 50;
-        int excessAmmo = 0;
-        int ammoPerParticle = 1;
+        float ammoPerParticle = 1;
         if (totalAmountToReload >= 0)
         {
-            ammoPerParticle = totalAmountToReload/particlesToMove.Count;
-            excessAmmo = totalAmountToReload % particlesToMove.Count;
+            ammoPerParticle = (float)totalAmountToReload/particlesToMove.Count;
         }
+        int weaponIndex = activeWeaponIndex;
         foreach (Particle p in particlesToMove)
         {
             p.ScheduleMoveToPoint(ActiveAmmoMeterPos(), 1f + Random.Range(Mathf.Max(-delayRange, -0.9f), delayRange))
-                .AppendCallback(()=>AddAmmo(ammoPerParticle + (excessAmmo-- >= 0? 1 : 0), activeWeaponIndex));
+                .AppendCallback(()=>AddAmmo(ammoPerParticle, weaponIndex));
         }
     }
 
@@ -198,6 +208,7 @@ public class Gun : MonoBehaviour
             else
             {
                 unlockedWeapons[indexToUnlock] = true;
+                AmmoMeters.Instance.GameObjects[indexToUnlock].SetActive(true);
                 return ("Unlocked " + weapons[indexToUnlock].name + "! (Press " + indexToUnlock + ")");
             }
         }
@@ -230,6 +241,6 @@ public class Gun : MonoBehaviour
 
     public Vector3 ActiveAmmoMeterPos()
     {
-        return ammoMeters[activeWeaponIndex].transform.position;
+        return AmmoMeters.Instance.GameObjects[activeWeaponIndex].transform.position;
     }
 }

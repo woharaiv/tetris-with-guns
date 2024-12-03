@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Pistol
   fireRate: 0.3
-  ammo: 100
+  ammo: 10
   autoFire: 0
   shootParticle: {fileID: 2972642729678921740, guid: 7d0d9047857cdf74980d342d17d187ce, type: 3}
   shootSound: {fileID: 8300000, guid: 8e8416d479e0b564bb624618e51611a3, type: 3}

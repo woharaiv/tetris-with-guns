@@ -100,7 +100,7 @@ public class Tile : MonoBehaviour, ICanBeShot
         tileHealth -= damage;
         if (tileHealth <= 0)
         {
-            KillTile(KillType.Shot);
+            KillTile(KillType.Shot, true);
             return;
         }
         else
@@ -167,44 +167,24 @@ public class Tile : MonoBehaviour, ICanBeShot
 
         Playfield.instance.tilesInPlay.Remove(this);
         owner?.TileKilled(this);
+        List<Particle> ret = null;
         TileCrateSmall crateScript = GetComponent<TileCrateSmall>();
-        int ammoToReload;
-        switch (killType)
-        {
-            case KillType.Default: 
-                ammoToReload = 0;
-                break;
-            case KillType.Shot: 
-                ammoToReload = 0; 
-                break;
-            case KillType.ClearSingle: 
-                ammoToReload = 1; 
-                break;
-            case KillType.ClearDouble: 
-                ammoToReload = 1; 
-                break;
-            case KillType.ClearTriple: 
-                ammoToReload = 2; 
-                break;
-            case KillType.ClearQuad:
-                ammoToReload = 3; 
-                break;
-            case KillType.ClearMega: 
-                ammoToReload = 4;
-                break;
-        }
-        if (crateScript != null)
+        if (crateScript != null && killType == KillType.Shot)
             crateScript.SmashCrate();
         else
         {
-            ParticleManager.instance.SpawnAndLaunchParticles("DestroyTile", 5, transform.position, out List<Particle> spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2);
-            foreach (var particle in spawnedParticles)
+            if(spawnParticles)
             {
-                particle.GetComponent<SpriteRenderer>().color = this.color;
+                ParticleManager.instance.SpawnAndLaunchParticles("DestroyTile", 5, transform.position, out List<Particle> spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2);
+                foreach (var particle in spawnedParticles)
+                {
+                    particle.GetComponent<SpriteRenderer>().color = this.color;
+                }
+                ret = spawnedParticles;
             }
-            Gun.instance.ScheduleMoveAmmoToReload(spawnedParticles, 1);
         }
         Destroy(gameObject);
+        return ret;
     }
 
     Tile gravCheckTile;
