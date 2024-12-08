@@ -2151,7 +2151,7 @@ MonoBehaviour:
   sceneUsesAmmo: 1
   fireRate: 0.05
   canSwitchWeapon: 1
-  startWithAllWeapons: 1
+  startWithAllWeapons: 0
   weapons:
   - {fileID: 11400000, guid: e55fc58608c28da48847b8293c582284, type: 2}
   - {fileID: 11400000, guid: ce994b5aef106c9448b9332e254b33dd, type: 2}
@@ -3302,7 +3302,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: -0.00000047683716}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1053781004

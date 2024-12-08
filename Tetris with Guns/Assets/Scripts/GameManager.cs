@@ -139,7 +139,8 @@ public class GameManager : MonoBehaviour
                     Playfield.instance.DropAllTiles();
                     lineClearTimer = -999;
                     gameRunning = true;
-                    SpawnPiece();
+                    if(activePiece == null)
+                        SpawnPiece();
                 }
             }
         }
@@ -259,8 +260,15 @@ public class GameManager : MonoBehaviour
 
         activePiece.PiecePlaced();
 
+        ClearFullLines();
+        activePiece.isActivePiece = false;
+        activePiece = null;
+
+        spawnTimer = spawnDelay;
+    }
+    public void ClearFullLines()
+    {
         List<Particle> rowClearParticles;
-        //Line cleared logic
         List<float> rowsCleared = Playfield.instance.RowClearCheck(out rowClearParticles);
         int ammoToAdd = 0;
         if (rowsCleared.Count > 0)
@@ -268,7 +276,7 @@ public class GameManager : MonoBehaviour
             InfoPopup rowClearPopup = Instantiate(Resources.Load<GameObject>("Prefabs/InfoPopup"), Vector3.up * rowsCleared[0], Quaternion.identity, null).GetComponent<InfoPopup>();
             gameRunning = false;
             lineClearTimer = lineClearDelay;
-            switch(rowsCleared.Count)
+            switch (rowsCleared.Count)
             {
                 case 1:
                     rowClearPopup.Initialize(InfoMode.CUSTOM_TEXT, "CLEAR");
@@ -296,8 +304,8 @@ public class GameManager : MonoBehaviour
                     ammoToAdd = 15;
                     break;
             }
-            
-            while(lineScore >= lineGoal && lineGoal > 0)
+
+            while (lineScore >= lineGoal && lineGoal > 0)
             {
                 lineScore -= lineGoal;
                 level++;
@@ -305,13 +313,8 @@ public class GameManager : MonoBehaviour
                 gravity += 2;
                 stepTimerMax = 256 / (60 * gravity);
             }
-
+            gun.ScheduleMoveAmmoToReload(rowClearParticles, ammoToAdd);
         }
-        gun.ScheduleMoveAmmoToReload(rowClearParticles, ammoToAdd);
-        activePiece.isActivePiece = false;
-        activePiece = null;
-
-        spawnTimer = spawnDelay;
     }
 
     void GameOver()

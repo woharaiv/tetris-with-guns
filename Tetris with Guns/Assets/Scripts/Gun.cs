@@ -26,13 +26,17 @@ public class Gun : MonoBehaviour
         }
         set 
         {
+            bool increased = (value > heldWeaponAmmos[activeWeaponIndex]);
             heldWeaponAmmos[activeWeaponIndex] = value;
             if(sceneUsesAmmo)
             {
                 AmmoMeters.Instance.Sliders[activeWeaponIndex].value = (float)value/weapons[activeWeaponIndex].ammo;
-                DOTween.Sequence()
-                    .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(UnityEngine.Color.white, 0.1f))
-                    .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(new UnityEngine.Color(200, 200, 210), 0.9f));
+                if(increased)
+                {
+                    DOTween.Sequence()
+                        .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(UnityEngine.Color.white, 0.1f))
+                        .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(new UnityEngine.Color(0.784f, 0.784f, 0.824f), 0.4f));
+                }
             }
         } 
     }
@@ -166,6 +170,12 @@ public class Gun : MonoBehaviour
         if (sceneUsesAmmo)
         {
             AmmoMeters.Instance.Sliders[indexToAddTo].value = heldWeaponAmmos[indexToAddTo] / weapons[indexToAddTo].ammo;
+            if (ammoToAdd > 0)
+            {
+                DOTween.Sequence()
+                    .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(UnityEngine.Color.white, 0.1f))
+                    .Append(AmmoMeters.Instance.FillImages[activeWeaponIndex].DOColor(new UnityEngine.Color(0.784f, 0.784f, 0.824f), 0.4f));
+            }
         }
     }
 
@@ -189,7 +199,7 @@ public class Gun : MonoBehaviour
         int weaponIndex = activeWeaponIndex;
         foreach (Particle p in particlesToMove)
         {
-            p.ScheduleMoveToPoint(ActiveAmmoMeterPos(), 1f + Random.Range(Mathf.Max(-delayRange, -0.9f), delayRange))
+            p.ScheduleMoveToPoint(RandomPointOnActiveAmmoMeter(), 1f + Random.Range(Mathf.Max(-delayRange, -0.9f), delayRange))
                 .AppendCallback(()=>AddAmmo(ammoPerParticle, weaponIndex));
         }
     }
@@ -242,5 +252,10 @@ public class Gun : MonoBehaviour
     public Vector3 ActiveAmmoMeterPos()
     {
         return AmmoMeters.Instance.GameObjects[activeWeaponIndex].transform.position;
+    }
+    public Vector3 RandomPointOnActiveAmmoMeter()
+    {
+        RectTransform meterRect = AmmoMeters.Instance.GameObjects[activeWeaponIndex].GetComponent<RectTransform>();
+        return new Vector3(Random.Range(meterRect.rect.xMin, meterRect.rect.xMax), Random.Range(meterRect.rect.yMin, meterRect.rect.yMax), 0) + meterRect.transform.position;
     }
 }

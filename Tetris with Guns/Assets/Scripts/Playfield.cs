@@ -88,11 +88,15 @@ public class Playfield : MonoBehaviour
              Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
              foreach (Tile tile in tilesInPlay)
              {
-                 Physics2D.OverlapCircle(tile.transform.position, tileSize * 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
-                 if(tile.transform.position.y + tileSize * 0.1 > yPos) //For each row cleared, drop all the tiles that lie above that line
-                 {
-                     tile.QueueDrop();
-                 }
+                if (tile == null)
+                {
+                    tilesInPlay.Remove(tile);
+                    continue;
+                }
+                else if(tile.transform.position.y + tileSize * 0.1 > yPos) //For each row cleared, drop all the tiles that lie above that line
+                {
+                    tile.QueueDrop();
+                }
              }
         }
         return clearedRowYs;

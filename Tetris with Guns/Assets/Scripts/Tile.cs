@@ -5,10 +5,10 @@ using UnityEngine;
 using Physics2D = RotaryHeart.Lib.PhysicsExtension.Physics2D;
 using DG.Tweening;
 
-[RequireComponent(typeof(BoxCollider2D))]
+
 public class Tile : MonoBehaviour, ICanBeShot
 {
-    static float gravityMod = 0.1f;
+    static float gravityMod = 0.01f;
 
     public float timestamp = -1f;
     public Tetramino owner;
@@ -25,12 +25,15 @@ public class Tile : MonoBehaviour, ICanBeShot
 
     private void Start()
     {
-        Playfield.instance.tilesInPlay.Add(this);
         tileHealth = maxHealth;
         spriteRenderer = GetComponent<SpriteRenderer>();
         color = spriteRenderer.color;
         if(GetComponent<TileCrateSmall>() != null)
             GetComponent<TileCrateSmall>().tileScript = this;
+    }
+    private void OnDestroy()
+    {
+        Playfield.instance.tilesInPlay.Remove(this);
     }
 
     private void Update()
@@ -60,12 +63,14 @@ public class Tile : MonoBehaviour, ICanBeShot
                 float yPosDecimalPortion = Mathf.Abs(yPos - yPosTruncated);
                 transform.position = new Vector3(transform.position.x, yPosTruncated + ((yPosDecimalPortion < 0.5 ? 0.25f : 0.75f) * Mathf.Sign(yPos)), transform.position.z);
                 GetComponent<TileCrateSmall>()?.TryMergeCrates();
+                GameManager.instance.ClearFullLines();
             }
         }
     }
 
     public void TilePlaced()
     {
+        Playfield.instance.tilesInPlay.Add(this);
         GetComponent<TileCrateSmall>()?.TryMergeCrates();
         DOTween.Sequence()
                 .Append(spriteRenderer.DOColor(Color.white, 0.1f))
@@ -117,14 +122,10 @@ public class Tile : MonoBehaviour, ICanBeShot
         ClearQuad,
         ClearMega
     }
-    /// <summary>
-    /// Destroys a pa
-    /// </summary>
-    /// <param name="killType"></param>
-    /// <param name="spawnParticles"></param>
-    /// <returns></returns>
     public List<Particle> KillTile(KillType killType = KillType.Default, bool spawnParticles = false)
     {
+        Destroy(gameObject.GetComponent<BoxCollider2D>());
+        Physics.SyncTransforms();
         DOTween.Kill(this);
         if (!owner || !owner.isActivePiece)
         {  
@@ -168,7 +169,7 @@ public class Tile : MonoBehaviour, ICanBeShot
         Playfield.instance.tilesInPlay.Remove(this);
         owner?.TileKilled(this);
         List<Particle> ret = null;
-        TileCrateSmall crateScript = GetComponent<TileCrateSmall>();
+        ITileCrate crateScript = GetComponent<ITileCrate>();
         if (crateScript != null && killType == KillType.Shot)
             crateScript.SmashCrate();
         else
