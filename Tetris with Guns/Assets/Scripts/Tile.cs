@@ -8,7 +8,7 @@ using DG.Tweening;
 
 public class Tile : MonoBehaviour, ICanBeShot
 {
-    static float gravityMod = 0.01f;
+    static float gravityMod = 0.03f;
 
     public float timestamp = -1f;
     public Tetramino owner;
@@ -28,6 +28,7 @@ public class Tile : MonoBehaviour, ICanBeShot
         tileHealth = maxHealth;
         spriteRenderer = GetComponent<SpriteRenderer>();
         color = spriteRenderer.color;
+        color.a = 1f; //Sometimes this is 0 instead of 1 for some reason. No clue why.
         if(GetComponent<TileCrateSmall>() != null)
             GetComponent<TileCrateSmall>().tileScript = this;
     }
@@ -50,7 +51,7 @@ public class Tile : MonoBehaviour, ICanBeShot
                 if (!tileComponent || !tileComponent.usingGravity)
                 {
                     usingGravity = false;
-                    GetComponent<SpriteRenderer>().color = color;
+                    //GetComponent<SpriteRenderer>().color = color;
                     break;
                 }
             }
@@ -120,14 +121,15 @@ public class Tile : MonoBehaviour, ICanBeShot
         ClearDouble,
         ClearTriple,
         ClearQuad,
-        ClearMega
+        ClearMega,
+        NoGravCheck
     }
-    public List<Particle> KillTile(KillType killType = KillType.Default, bool spawnParticles = false)
+    public List<Particle> KillTile(KillType killType = KillType.Default, bool spawnParticles = false, bool doDespawnSequence = true)
     {
-        Destroy(gameObject.GetComponent<BoxCollider2D>());
+        Destroy(gameObject);
         Physics.SyncTransforms();
         DOTween.Kill(this);
-        if (!owner || !owner.isActivePiece)
+        if ((!owner || !owner.isActivePiece) && killType != KillType.NoGravCheck)
         {  
             //Makes gravity checks think this tile doesn't exist 
             alreadyCheckingGravity = true;
@@ -170,13 +172,13 @@ public class Tile : MonoBehaviour, ICanBeShot
         owner?.TileKilled(this);
         List<Particle> ret = null;
         ITileCrate crateScript = GetComponent<ITileCrate>();
-        if (crateScript != null && killType == KillType.Shot)
+        if (crateScript != null && (killType == KillType.Shot || GetComponent<TileCrateBig>() != null))
             crateScript.SmashCrate();
         else
         {
             if(spawnParticles)
             {
-                ParticleManager.instance.SpawnAndLaunchParticles("DestroyTile", 5, transform.position, out List<Particle> spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2);
+                ParticleManager.instance.SpawnAndLaunchParticles("DestroyTile", 5, transform.position, out List<Particle> spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2, doDespawnSequence);
                 foreach (var particle in spawnedParticles)
                 {
                     particle.GetComponent<SpriteRenderer>().color = this.color;
@@ -200,7 +202,7 @@ public class Tile : MonoBehaviour, ICanBeShot
         //If a neighbor is a tile, return false if that one's check for gravity returns false.
 
         //Check down
-        gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.down * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"));
+        gravCheckNeighbor = Physics2D.OverlapPoint(transform.position + Vector3.down * Playfield.tileSize, LayerMask.NameToLayer("Obstruction"), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 5f);
         if (gravCheckNeighbor)
         {
             gravCheckTile = gravCheckNeighbor.GetComponent<Tile>();
@@ -215,7 +217,7 @@ public class Tile : MonoBehaviour, ICanBeShot
         {
             alreadyCheckingGravity = false;
             usingGravity = false;
-            GetComponent<SpriteRenderer>().color = color;
+            //GetComponent<SpriteRenderer>().color = color;
             return false;
         }
         /*

@@ -7,7 +7,7 @@ public class Background : MonoBehaviour
 {
     List<GameObject> bulletHoles = new List<GameObject>();
     [SerializeField] RawImage backgroundImage;
-    [SerializeField] Vector2 movementVelocity = Vector2.one;
+    [SerializeField] public Vector2 movementVelocity = Vector2.one;
 
     [SerializeField] float backgroundScalar = 0.1f;
 

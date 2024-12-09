@@ -85,7 +85,7 @@ public class Playfield : MonoBehaviour
         foreach(float yPos in clearedRowYs)
         {
              Debug.LogFormat("Dropping tiles above y: {0:N}", yPos);
-             Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Editor, 10f);
+             Physics2D.Linecast(new Vector2(playfieldCorners[0].x * 1.1f, yPos), new Vector2(playfieldCorners[2].x * 1.1f, yPos), RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None, 10f);
              foreach (Tile tile in tilesInPlay)
              {
                 if (tile == null)

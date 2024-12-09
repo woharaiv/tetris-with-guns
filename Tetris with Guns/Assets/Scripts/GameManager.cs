@@ -5,6 +5,10 @@ using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 using DG.Tweening;
 using UnityEngine.UI;
+using static Cinemachine.DocumentationSortingAttribute;
+using UnityEngine.SocialPlatforms.Impl;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -21,9 +25,13 @@ public class GameManager : MonoBehaviour
 
     PieceSpawner pieceSpawner;
 
-
     [HideInInspector] public Tetramino activePiece;
     [HideInInspector] public bool gameRunning = true;
+
+    public bool gameOver = false;
+    float gameOverTimer = -999;
+    float pieceBurstTimerMax = 0.25f;
+    float pieceBurstTimer = 0;
     
     [Space, SerializeField] float crateSpawnChance = 0.1f;
     
@@ -38,6 +46,15 @@ public class GameManager : MonoBehaviour
     [Space, SerializeField] int level = 1;
     [SerializeField] int lineGoal = 5;
     [SerializeField] int lineScore = 0;
+
+    [SerializeField] TextMeshProUGUI scoreField;
+    [SerializeField] TextMeshProUGUI hiScoreField;
+    int points;
+    int lineClearCount = 0;
+    float softDropTime = 0;
+    int hardDropDist = 0;
+    float pieceActiveTime = 0;
+    int combo;
 
     private void Awake()
     {
@@ -62,6 +79,8 @@ public class GameManager : MonoBehaviour
         spawnTimer = -999;
         lineClearTimer = -999;
 
+        ScoreManager.lastScore = 0;
+
         input = actionAsset.FindActionMap("Gameplay");
         shift = input.FindAction("Shift");
         input.FindAction("Shift").started += ShiftInput;
@@ -72,6 +91,7 @@ public class GameManager : MonoBehaviour
         Tetramino.randomIndexMax = (int)(4 / crateSpawnChance) - 1;
 
         DOTween.SetTweensCapacity(200, 150);
+        
     }
 
     void OnEnable()
@@ -81,6 +101,13 @@ public class GameManager : MonoBehaviour
     void OnDisable()
     {
         input.Disable();
+    }
+
+    private void OnDestroy()
+    {
+        input.FindAction("Shift").started -= ShiftInput;
+        input.FindAction("Rotate").started -= RotatePiece;
+        input.FindAction("Hard Drop").started -= HardDrop;
     }
 
     private void Start()
@@ -95,8 +122,16 @@ public class GameManager : MonoBehaviour
         if(gameRunning)
         {
             stepTimer -= Time.deltaTime;
-            if(acceptingInput && softDrop.phase == InputActionPhase.Performed)
+            if(acceptingInput && activePiece != null)
+            {
+                pieceActiveTime += Time.deltaTime;
+                if (softDrop.phase == InputActionPhase.Started || softDrop.phase == InputActionPhase.Performed)
+                    softDropTime += Time.deltaTime;
+            }
+            if (acceptingInput && softDrop.phase == InputActionPhase.Performed)
+            {
                 stepTimer -= Time.deltaTime * (softDropSpeedMult - 1);
+            }
             if (stepTimer <= 0 || (acceptingInput && softDrop.phase == InputActionPhase.Started))
             {
                 stepTimer = stepTimerMax;
@@ -131,6 +166,28 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            if(gameOver)
+            {
+                gameOverTimer -= Time.deltaTime;
+                if(gameOverTimer <= 0)
+                {
+                    pieceBurstTimer += Time.deltaTime;
+                    if (pieceBurstTimer >= pieceBurstTimerMax)
+                    {
+                        pieceBurstTimerMax -= 0.01f;
+                        pieceBurstTimer = 0;
+                        if(Playfield.instance.tilesInPlay.Count > 0)
+                        {
+                            Playfield.instance.tilesInPlay[Playfield.instance.tilesInPlay.Count - 1].KillTile(Tile.KillType.NoGravCheck, true, false);
+                        }
+                        else
+                        {
+                            pieceBurstTimerMax = float.MaxValue;
+                            gun.screenFlashAsset.DOColor(new Color(0, 0, 0, 1f), 2f).OnComplete(()=>StartCoroutine(GoToGameOver()));
+                        }
+                    }
+                }
+            }
             if (lineClearTimer != -999)
             {
                 lineClearTimer -= Time.deltaTime;
@@ -145,7 +202,15 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
+    IEnumerator GoToGameOver()
+    {
+        DOTween.KillAll(true);
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("GameOver");
+        while(!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+    }
     /// <summary>
     /// Step the piece down once, placing it if it's already at the bottom.
     /// </summary>
@@ -222,9 +287,11 @@ public class GameManager : MonoBehaviour
         int panicCount = 50;
         while(!Step())
         {
+            hardDropDist++;
             panicCount--;
             if(panicCount <= 0)
             {
+                hardDropDist = 0;
                 Debug.LogError("Hard Drop function ran too long");
                 break;
             }
@@ -237,13 +304,18 @@ public class GameManager : MonoBehaviour
             return null;
         activePiece = pieceSpawner.SpawnNextPiece();
         Physics2D.SyncTransforms();
+        //Block Out: If a piece spawns overlapping a tile in the playfield, the player tops out.
         if (activePiece.IsObstructed(Vector2.zero, null, Color.red))
         {
             GameOver();
+            PlaceMino();
             return null;
         }
         Step();
         spawnTimer = -999;
+        hardDropDist = 0;
+        softDropTime = 0;
+        pieceActiveTime = 0;
         return activePiece;
     }
 
@@ -260,13 +332,15 @@ public class GameManager : MonoBehaviour
 
         activePiece.PiecePlaced();
 
-        ClearFullLines();
+        ClearFullLines(true);
         activePiece.isActivePiece = false;
         activePiece = null;
 
         spawnTimer = spawnDelay;
+        ScoreManager.AddScore(CalculateScore());
     }
-    public void ClearFullLines()
+
+    public void ClearFullLines(bool canEndCombo = false)
     {
         List<Particle> rowClearParticles;
         List<float> rowsCleared = Playfield.instance.RowClearCheck(out rowClearParticles);
@@ -276,6 +350,7 @@ public class GameManager : MonoBehaviour
             InfoPopup rowClearPopup = Instantiate(Resources.Load<GameObject>("Prefabs/InfoPopup"), Vector3.up * rowsCleared[0], Quaternion.identity, null).GetComponent<InfoPopup>();
             gameRunning = false;
             lineClearTimer = lineClearDelay;
+            lineClearCount += rowsCleared.Count;
             switch (rowsCleared.Count)
             {
                 case 1:
@@ -304,7 +379,7 @@ public class GameManager : MonoBehaviour
                     ammoToAdd = 15;
                     break;
             }
-
+            combo += (2 * rowsCleared.Count) - 2;
             while (lineScore >= lineGoal && lineGoal > 0)
             {
                 lineScore -= lineGoal;
@@ -315,13 +390,22 @@ public class GameManager : MonoBehaviour
             }
             gun.ScheduleMoveAmmoToReload(rowClearParticles, ammoToAdd);
         }
+        else
+        {
+            if(canEndCombo)
+                combo = 0;
+        }
     }
 
     void GameOver()
     {
         Debug.Log("GAME OVER");
         gameRunning = false;
+        Background.instance.movementVelocity = Vector2.zero;
+        gameOver = true;
         lineClearTimer = -999;
+        gameOverTimer = 1f;
+        Playfield.instance.tilesInPlay.Sort((a,b) => (int)(b.transform.position.y - a.transform.position.y));
     }
 
     public static GameObject SpawnInfoPopup(Vector3 pos, InfoMode infoMode, string infoText = "TEXT NOT INITIALIZED")
@@ -329,5 +413,16 @@ public class GameManager : MonoBehaviour
         GameObject infoPopup = Instantiate(Resources.Load<GameObject>("Prefabs/InfoPopup"), pos, Quaternion.identity, null);
         infoPopup.GetComponent<InfoPopup>().Initialize(infoMode, infoText);
         return infoPopup;
+    }
+
+    int CalculateScore()
+    {
+        //Score = ((Level + Lines)/4 + Soft + Sonic) x Lines x Combo + (Level_After_Clear)/2 + Speed
+        int score = 0;
+        int softDropFrames = (int)(softDropTime * 60);
+        int speed = (int)(stepTimerMax * 60) - (int)(pieceActiveTime * 60);
+        score = ((((level + lineClearCount) / 4) + 1) + softDropFrames + hardDropDist) * (lineClearCount + 1) * (combo + 1) + ((level / 2) + 1) + Mathf.Max(speed, 1);
+        score = Mathf.Max(0, score);
+        return score;
     }
 }

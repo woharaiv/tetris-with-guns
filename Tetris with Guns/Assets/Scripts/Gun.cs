@@ -91,9 +91,12 @@ public class Gun : MonoBehaviour
 
     private void Start()
     {
-        for (int i = 0; i < AmmoMeters.Instance.GameObjects.Length; i++)
+        if(sceneUsesAmmo)
         {
-            AmmoMeters.Instance.GameObjects[i].SetActive(unlockedWeapons[i]); 
+            for (int i = 0; i < AmmoMeters.Instance.GameObjects.Length; i++)
+            {
+                AmmoMeters.Instance.GameObjects[i].SetActive(unlockedWeapons[i]); 
+            }
         }
         UpdateActiveWeapon();
     }
@@ -135,7 +138,7 @@ public class Gun : MonoBehaviour
 
         fireTimer = fireRate;
     }
-    void ShootAction(InputAction.CallbackContext ctx) { Shoot(ctx); }
+    void ShootAction(InputAction.CallbackContext ctx) { if(GameManager.instance == null || !GameManager.instance.gameOver) Shoot(ctx); }
 
     void SwitchWeapon(InputAction.CallbackContext ctx) 
     {
@@ -153,9 +156,12 @@ public class Gun : MonoBehaviour
     {
         fireTimer = fireRate = activeWeapon.fireRate;
         doAutofire = activeWeapon.autoFire;
-        for(int i = 0; i < AmmoMeters.Instance.Tints.Length; i++)
+        if (sceneUsesAmmo)
         {
-            AmmoMeters.Instance.Tints[i].SetActive(i != activeWeaponIndex);
+            for (int i = 0; i < AmmoMeters.Instance.Tints.Length; i++)
+            {
+                AmmoMeters.Instance.Tints[i].SetActive(i != activeWeaponIndex);
+            }
         }
     }
 
@@ -219,7 +225,7 @@ public class Gun : MonoBehaviour
             {
                 unlockedWeapons[indexToUnlock] = true;
                 AmmoMeters.Instance.GameObjects[indexToUnlock].SetActive(true);
-                return ("Unlocked " + weapons[indexToUnlock].name + "! (Press " + indexToUnlock + ")");
+                return ($"Unlocked {weapons[indexToUnlock].name}! (Press {indexToUnlock + 1})");
             }
         }
         return "Unknown Gun";

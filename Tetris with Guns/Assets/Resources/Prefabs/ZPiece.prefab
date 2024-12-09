@@ -48,9 +48,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d084bdc6a35ef004fa074358445f5bb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showGrid: 1
+  showGrid: 0
   width: 3
-  color: {r: 0.49019608, g: 0, b: 1, a: 0}
+  color: {r: 0.49019608, g: 0, b: 1, a: 1}
   isActivePiece: 1
   piecePreview: {fileID: 21300000, guid: 5a97667ffaf1d4844af6ea53f0136f24, type: 3}
 --- !u!1001 &261983019730322649

@@ -34,16 +34,16 @@ public class TileCrateSmall : MonoBehaviour, ITileCrate
         TileCrateSmall[] surroundingTiles = new TileCrateSmall[8] {null, null, null, null, null, null, null, null};
         
         // Check and store if crate left
-        surroundingTiles[3] = CrateInDirection(Vector2.left, true);
+        surroundingTiles[3] = CrateInDirection(Vector2.left);
         // Check and store if crate right
-        surroundingTiles[4] = CrateInDirection(Vector2.right, true);
+        surroundingTiles[4] = CrateInDirection(Vector2.right);
         
         //If crate above
-        surroundingTiles[1] = CrateInDirection(Vector2.up, true);
+        surroundingTiles[1] = CrateInDirection(Vector2.up);
         if(surroundingTiles[1])
         {
             //  If crate left && crate above left
-            surroundingTiles[0] = CrateInDirection(Vector2.up + Vector2.left, true);
+            surroundingTiles[0] = CrateInDirection(Vector2.up + Vector2.left);
             if (surroundingTiles[3] && surroundingTiles[0])
             {
                 surroundingTiles[0].GetComponent<Tile>().KillTile();
@@ -55,7 +55,7 @@ public class TileCrateSmall : MonoBehaviour, ITileCrate
                 return;
             }
             //  If crate right && above right
-            surroundingTiles[2] = CrateInDirection(Vector2.up + Vector2.right, true);
+            surroundingTiles[2] = CrateInDirection(Vector2.up + Vector2.right);
             if (surroundingTiles[4] && surroundingTiles[2])
             {
                 surroundingTiles[1].GetComponent<Tile>().KillTile();
@@ -67,11 +67,11 @@ public class TileCrateSmall : MonoBehaviour, ITileCrate
             }
         }
         //If crate below
-        surroundingTiles[6] = CrateInDirection(Vector2.down, true);
+        surroundingTiles[6] = CrateInDirection(Vector2.down);
         if (surroundingTiles[6])
         {
             //If crate left && crate below left
-            surroundingTiles[5] = CrateInDirection(Vector2.down + Vector2.left, true);
+            surroundingTiles[5] = CrateInDirection(Vector2.down + Vector2.left);
             if (surroundingTiles[3] && surroundingTiles[5])
             {
                 surroundingTiles[3].gameObject.GetComponent<Tile>().KillTile();
@@ -83,7 +83,7 @@ public class TileCrateSmall : MonoBehaviour, ITileCrate
                 return;
             }
             //If crate right && below right
-            surroundingTiles[7] = CrateInDirection(Vector2.down + Vector2.right, true);
+            surroundingTiles[7] = CrateInDirection(Vector2.down + Vector2.right);
             if (surroundingTiles[4] && surroundingTiles[7])
             {
                 surroundingTiles[4].GetComponent<Tile>().KillTile();
@@ -98,9 +98,9 @@ public class TileCrateSmall : MonoBehaviour, ITileCrate
         return;
     }
 
-    TileCrateSmall CrateInDirection(Vector2 direction, bool showCast = false)
+    TileCrateSmall CrateInDirection(Vector2 direction)
     {
-        foreach (Collider2D hit in Physics2D.OverlapPointAll((Vector2)transform.position + direction * 0.5f, 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.Both, 3))
+        foreach (Collider2D hit in Physics2D.OverlapPointAll((Vector2)transform.position + direction * 0.5f, 0.1f, RotaryHeart.Lib.PhysicsExtension.PreviewCondition.None, 3))
         {
             if (hit.gameObject.GetComponent<TileCrateSmall>() != null)
             {

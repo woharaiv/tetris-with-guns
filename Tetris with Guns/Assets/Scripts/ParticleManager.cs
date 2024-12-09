@@ -41,7 +41,7 @@ public class ParticleManager : MonoBehaviour
         }
     }
 
-    public bool SpawnParticles(string group, int count, Vector2 origin, out List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f)
+    public bool SpawnParticles(string group, int count, Vector2 origin, out List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f, bool doDespawnSequence = true)
     {
         if (particleGroups.TryGetValue(group, out ParticleGroup particleGroup))
         {
@@ -62,8 +62,10 @@ public class ParticleManager : MonoBehaviour
                     }
                 }
 
-                GameObject spawnedParticle = Instantiate(particleGroup.particles[Random.Range(0, particleGroup.particles.Count)].gameObject, spawnPoint, Quaternion.Euler(0, 0, Random.Range(0, 360.0f)), null);
-                spawnedParticles.Add(spawnedParticle.GetComponent<Particle>());
+                Particle spawnedParticle = Instantiate(particleGroup.particles[Random.Range(0, particleGroup.particles.Count)].gameObject, spawnPoint, Quaternion.Euler(0, 0, Random.Range(0, 360.0f)), null).GetComponent<Particle>();
+                if (doDespawnSequence)
+                    spawnedParticle.StartDespawnSequence();
+                spawnedParticles.Add(spawnedParticle);
             }
             return true;
         }
@@ -75,9 +77,9 @@ public class ParticleManager : MonoBehaviour
         }
     }
 
-    public bool SpawnAndLaunchParticles(string group, int count, Vector2 origin, out List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f)
+    public bool SpawnAndLaunchParticles(string group, int count, Vector2 origin, out List<Particle> spawnedParticles, SpawnShape spawnShape = SpawnShape.CIRCLE, float spawnRadius = 0.0f, bool doDespawnSequence = true)
     {
-        if (SpawnParticles(group, count, origin, out List<Particle> spawned, spawnShape, spawnRadius))
+        if (SpawnParticles(group, count, origin, out List<Particle> spawned, spawnShape, spawnRadius, doDespawnSequence))
         {
             spawnedParticles = spawned;
             foreach (var particle in spawnedParticles)

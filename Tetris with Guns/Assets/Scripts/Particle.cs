@@ -13,6 +13,9 @@ public class Particle : MonoBehaviour
     private void Start()
     {
         color = GetComponent<SpriteRenderer>().color;
+    }
+    public void StartDespawnSequence()
+    {
         despawnSequence = DOTween.Sequence()
             .AppendInterval(lifespan)
             .Append(GetComponent<SpriteRenderer>().DOColor(new Color(color.r, color.g, color.b, 0f), despawnTime))
