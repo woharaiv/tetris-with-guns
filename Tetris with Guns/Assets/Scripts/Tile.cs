@@ -174,17 +174,19 @@ public class Tile : MonoBehaviour, ICanBeShot
         ITileCrate crateScript = GetComponent<ITileCrate>();
         if (crateScript != null && (killType == KillType.Shot || GetComponent<TileCrateBig>() != null))
             crateScript.SmashCrate();
-        else
+        if(spawnParticles)
         {
-            if(spawnParticles)
+            string particleGroup = "DestroyTile";
+            if (GetComponent<TileCrateSmall>() != null)
+                particleGroup = "DestroyCrate";
+            if (GetComponent<TileCrateBig>() != null)
+                particleGroup = "DestroyBigCrate";
+            ParticleManager.instance.SpawnAndLaunchParticles(particleGroup, 5, transform.position, out List<Particle> spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2, doDespawnSequence);
+            foreach (var particle in spawnedParticles)
             {
-                ParticleManager.instance.SpawnAndLaunchParticles("DestroyTile", 5, transform.position, out List<Particle> spawnedParticles, SpawnShape.BOX, Playfield.tileSize/2, doDespawnSequence);
-                foreach (var particle in spawnedParticles)
-                {
-                    particle.GetComponent<SpriteRenderer>().color = this.color;
-                }
-                ret = spawnedParticles;
+                particle.GetComponent<SpriteRenderer>().color = this.color;
             }
+            ret = spawnedParticles;
         }
         Destroy(gameObject);
         return ret;

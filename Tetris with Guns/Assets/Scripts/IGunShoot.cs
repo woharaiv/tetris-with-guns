@@ -28,7 +28,7 @@ public class IGunShoot : ScriptableObject
 
     public virtual void ShootSound(Vector2 hitPosition)
     {
-        AudioSource.PlayClipAtPoint(weapon.shootSound, hitPosition);
+        AudioSource.PlayClipAtPoint(weapon.shootSound, new Vector3 (hitPosition.x/8, hitPosition.y/8, Camera.main.transform.position.z), 0.25f);
     }
 
     public virtual void ShootVFX(Vector2 hitPosition)
